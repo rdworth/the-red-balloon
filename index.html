@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Red Balloon</title>
+<meta name="description" content="Six takes on the opening of The Red Balloon, a stop-motion retelling in torn paper, marker, pencil, clay and pixels.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cabin+Sketch:wght@700&family=Patrick+Hand&display=swap">
+<style>
+  /* Same kraft-paper table as the cover and the openings. Single theme by choice. */
+  :root {
+    --kraft: #c4a574;
+    --kraft-dark: #a8895a;
+    --paper: #f4ecdb;
+    --pencil: #37302c;
+    --pencil-soft: #5e5046;
+    --balloon: #d42a22;
+    --tape: rgba(236, 226, 196, .78);
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  html, body { background: var(--kraft); color: var(--pencil); margin: 0; }
+  body {
+    font-family: "Patrick Hand", "Comic Sans MS", "Chalkboard SE", cursive;
+    font-size: 18px;
+    line-height: 1.4;
+    padding: 36px 16px 56px;
+    background-color: var(--kraft);
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(255,255,255,.08) 0 1px, transparent 2px),
+      radial-gradient(circle at 70% 80%, rgba(0,0,0,.06) 0 1px, transparent 2px);
+    background-size: 7px 7px, 11px 11px;
+  }
+  main { max-width: 1040px; margin: 0 auto; display: flex; flex-direction: column; gap: 34px; }
+
+  /* ---- title, a torn paper label ---- */
+  header {
+    align-self: center; text-align: center;
+    background: var(--paper);
+    padding: 14px 30px 16px;
+    transform: rotate(-1deg);
+    box-shadow: 1px 3px 4px rgba(60, 40, 15, .3);
+    clip-path: polygon(0 5%, 6% 0, 20% 4%, 37% 0, 55% 5%, 72% 0, 88% 4%, 100% 0, 99% 50%, 100% 96%, 85% 100%, 66% 95%, 48% 100%, 30% 96%, 14% 100%, 0 95%, 1% 50%);
+  }
+  h1 {
+    margin: 0; font-family: "Cabin Sketch", "Comic Sans MS", cursive; font-weight: 700;
+    font-size: clamp(38px, 7vw, 64px); line-height: 1.05;
+  }
+  h1 .red { color: var(--balloon); }
+  header p { margin: 6px 0 0; font-size: 19px; color: var(--pencil-soft); text-wrap: balance; }
+
+  /* ---- the six panels ---- */
+  .panels { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 34px 28px; }
+  .panel {
+    position: relative; display: flex; flex-direction: column; height: 100%;
+    color: inherit; text-decoration: none;
+    background: var(--paper);
+    padding: 10px 10px 12px;
+    box-shadow: 2px 5px 7px rgba(60, 40, 15, .32);
+    transform: rotate(var(--tilt, 0deg));
+    transition: transform .18s ease, box-shadow .18s ease;
+  }
+  .panels li:nth-child(1) .panel { --tilt: -1.4deg; }
+  .panels li:nth-child(2) .panel { --tilt: .9deg; }
+  .panels li:nth-child(3) .panel { --tilt: -.6deg; }
+  .panels li:nth-child(4) .panel { --tilt: 1.2deg; }
+  .panels li:nth-child(5) .panel { --tilt: -1deg; }
+  .panels li:nth-child(6) .panel { --tilt: .7deg; }
+  .panel:hover { transform: rotate(0deg) translateY(-4px); box-shadow: 3px 10px 14px rgba(60, 40, 15, .38); }
+  .panel:focus-visible { outline: 3px solid var(--balloon); outline-offset: 4px; }
+  .panel img {
+    display: block; width: 100%; height: auto; aspect-ratio: 966 / 550; object-fit: cover;
+    border: 2px solid var(--pencil); background: #86a9c4;
+  }
+  .panel img.pixel { image-rendering: pixelated; }
+  .panel .cap { display: flex; align-items: baseline; gap: 10px; padding: 10px 4px 0; }
+  .panel .n {
+    flex: none; width: 30px; height: 30px; border-radius: 50%;
+    display: grid; place-items: center; transform: translateY(2px);
+    background: var(--balloon); color: #fff; font-size: 18px; line-height: 1;
+  }
+  .panel h2 { margin: 0; font-family: "Cabin Sketch", "Comic Sans MS", cursive; font-weight: 700; font-size: 24px; line-height: 1.1; }
+  .panel p { margin: 4px 4px 0; font-size: 16.5px; color: var(--pencil-soft); }
+  .tape {
+    position: absolute; width: 74px; height: 24px; top: -11px; left: 50%; margin-left: -37px;
+    background: var(--tape);
+    box-shadow: 0 1px 2px rgba(60,40,15,.15);
+    transform: rotate(-4deg);
+    clip-path: polygon(3% 8%, 12% 0, 25% 6%, 40% 0, 58% 5%, 75% 0, 90% 6%, 100% 2%, 97% 50%, 100% 96%, 86% 100%, 70% 94%, 52% 100%, 34% 95%, 18% 100%, 4% 94%, 0 50%);
+  }
+  .panels li:nth-child(even) .tape { transform: rotate(5deg); }
+
+  /* ---- the gallery button ---- */
+  .gallery { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 6px; }
+  .gallery a {
+    display: inline-flex; align-items: center; gap: 12px;
+    font-family: "Cabin Sketch", "Comic Sans MS", cursive; font-weight: 700; font-size: 28px; line-height: 1.1;
+    color: #fff; text-decoration: none;
+    background: var(--balloon); border: 2px solid #7a1712; border-radius: 8px;
+    padding: 14px 26px 14px 20px;
+    box-shadow: 2px 5px 7px rgba(60, 40, 15, .35);
+    transform: rotate(-.8deg);
+    transition: transform .18s ease, box-shadow .18s ease;
+  }
+  .gallery a:hover { transform: rotate(0deg) translateY(-3px); box-shadow: 3px 9px 12px rgba(60, 40, 15, .4); }
+  .gallery a:focus-visible { outline: 3px solid var(--pencil); outline-offset: 4px; }
+  .gallery svg { flex: none; }
+  .note {
+    margin: 0; background: var(--paper); padding: 4px 14px 5px;
+    font-size: 17px; transform: rotate(1deg);
+    box-shadow: 1px 2px 3px rgba(60, 40, 15, .25);
+    clip-path: polygon(0 8%, 10% 0, 30% 6%, 52% 0, 74% 6%, 100% 0, 99% 50%, 100% 94%, 80% 100%, 58% 94%, 36% 100%, 16% 95%, 0 100%, 1% 50%);
+  }
+  .note strong { color: var(--balloon); font-weight: normal; }
+
+  @media (max-width: 860px) { .panels { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 540px) {
+    body { padding-top: 24px; }
+    .panels { grid-template-columns: minmax(0, 1fr); gap: 30px; }
+    .gallery a { font-size: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .panel, .gallery a { transition: none; } }
+</style>
+
+<main>
+  <header>
+    <h1>The <span class="red">Red</span> Balloon</h1>
+    <p>Six ways to open the film. Pick a panel to watch one.</p>
+  </header>
+
+  <ul class="panels">
+    <li><a class="panel" href="opening-scene.html">
+      <span class="tape" aria-hidden="true"></span>
+      <img src="home/opening-scene.jpg" alt="Torn paper rooftops of Paris with the red balloon rising" width="720" height="410">
+      <span class="cap"><span class="n" aria-hidden="true">1</span><h2>Torn paper</h2></span>
+      <p>Torn craft paper and colored pencil, shot like stop-motion.</p>
+    </a></li>
+    <li><a class="panel" href="opening-3d.html">
+      <span class="tape" aria-hidden="true"></span>
+      <img src="home/opening-3d.jpg" alt="A swooping marker drawing of Paris rooftops seen from above" width="720" height="410">
+      <span class="cap"><span class="n" aria-hidden="true">2</span><h2>Marker in 3D</h2></span>
+      <p>Shaky felt-tip marker in a 3D city the camera swoops through.</p>
+    </a></li>
+    <li><a class="panel" href="opening-photoreal.html">
+      <span class="tape" aria-hidden="true"></span>
+      <img src="home/opening-photoreal.jpg" alt="A photographed paper set of rooftops with the red balloon" width="720" height="410">
+      <span class="cap"><span class="n" aria-hidden="true">3</span><h2>Photographed paper</h2></span>
+      <p>The paper set made to look photographed, fibres and shadows too.</p>
+    </a></li>
+    <li><a class="panel" href="opening-pencil.html">
+      <span class="tape" aria-hidden="true"></span>
+      <img src="home/opening-pencil.jpg" alt="Bright colored pencil rooftops with the red balloon" width="720" height="410">
+      <span class="cap"><span class="n" aria-hidden="true">4</span><h2>Colored pencil</h2></span>
+      <p>Dense pencil strokes and bold outlines on white paper.</p>
+    </a></li>
+    <li><a class="panel" href="opening-clay.html">
+      <span class="tape" aria-hidden="true"></span>
+      <img src="home/opening-clay.jpg" alt="Plasticine rooftops and chimneys with the red balloon" width="720" height="410">
+      <span class="cap"><span class="n" aria-hidden="true">5</span><h2>Claymation</h2></span>
+      <p>Every piece modelled in plasticine, thumbprints and all.</p>
+    </a></li>
+    <li><a class="panel" href="opening-pixel.html">
+      <span class="tape" aria-hidden="true"></span>
+      <img class="pixel" src="home/opening-pixel.png" alt="Pixel art rooftops and the Eiffel Tower with the red balloon" width="966" height="550">
+      <span class="cap"><span class="n" aria-hidden="true">6</span><h2>Pixel art</h2></span>
+      <p>Chunky pixels, flat daylight colors and hard outlines.</p>
+    </a></li>
+  </ul>
+
+  <div class="gallery">
+    <a href="opening-gallery.html">
+      <svg width="30" height="40" viewBox="0 0 30 40" aria-hidden="true">
+        <ellipse cx="15" cy="13" rx="11.5" ry="12.5" fill="#fff"/>
+        <path d="M13 25.5 h4 l-2 3 z" fill="#fff"/>
+        <path d="M15 28 q-4 4 0 6 q4 2 -1 6" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+      Watch all six together
+    </a>
+    <p class="note"><strong>Desktop only.</strong> The gallery plays all six openings at once.</p>
+  </div>
+</main>
+</html>
