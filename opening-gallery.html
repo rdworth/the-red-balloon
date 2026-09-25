@@ -104,20 +104,58 @@
       radial-gradient(circle at 20% 30%, rgba(255,255,255,.08) 0 1px, transparent 2px),
       radial-gradient(circle at 70% 80%, rgba(0,0,0,.06) 0 1px, transparent 2px);
     background-size: 7px 7px, 11px 11px;
-    transition: opacity .4s ease, visibility 0s linear .4s;
   }
-  .loader.done { opacity: 0; visibility: hidden; }
+  .loader { animation: lift .4s ease 6.45s forwards; }
+  @keyframes lift { to { opacity: 0; visibility: hidden; } }
   .loader-in { display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; }
-  .loader svg { width: 64px; height: 110px; overflow: visible; animation: bob 2.4s ease-in-out infinite; }
-  @keyframes bob { 50% { transform: translateY(-10px) rotate(3deg); } }
+  /* Six seconds, all in CSS so it keeps time even while the openings busy the page loading:
+     the balloon takes a puff from its knot each second and another circle fills in. */
+  .inflate { position: relative; width: 64px; height: 110px; }
+  .inflate svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .inflate .puff { transform-origin: 50% 68.2%; transform: scale(.3); animation: inflate 6.45s linear forwards; will-change: transform; }
+  @keyframes inflate {
+    0% { transform: scale(.3); }
+    15.50% { transform: scale(0.300); }
+    18.29% { transform: scale(0.446); }
+    21.71% { transform: scale(0.417); }
+    31.01% { transform: scale(0.417); }
+    33.80% { transform: scale(0.571); }
+    37.21% { transform: scale(0.533); }
+    46.51% { transform: scale(0.533); }
+    49.30% { transform: scale(0.695); }
+    52.71% { transform: scale(0.650); }
+    62.02% { transform: scale(0.650); }
+    64.81% { transform: scale(0.820); }
+    68.22% { transform: scale(0.767); }
+    77.52% { transform: scale(0.767); }
+    80.31% { transform: scale(0.945); }
+    83.72% { transform: scale(0.883); }
+    93.02% { transform: scale(0.883); }
+    95.81% { transform: scale(1.070); }
+    99.22% { transform: scale(1.000); }
+    100% { transform: scale(1); }
+  }
   .loader h2 { margin: 0; font-family: "Cabin Sketch", "Comic Sans MS", cursive; font-weight: 700; font-size: 30px; }
-  @media (prefers-reduced-motion: reduce) { .loader svg { animation: none; } .loader { transition: none; } }
+  .dots { display: flex; gap: 8px; }
+  .dots i { position: relative; width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--pencil); }
+  .dots i::after { content: ""; position: absolute; inset: -2px; border-radius: 50%; background: var(--balloon); border: 2px solid #7a1712; opacity: 0; animation: fill .2s ease forwards; }
+  .dots i:nth-child(1)::after { animation-delay: 1s; }
+  .dots i:nth-child(2)::after { animation-delay: 2s; }
+  .dots i:nth-child(3)::after { animation-delay: 3s; }
+  .dots i:nth-child(4)::after { animation-delay: 4s; }
+  .dots i:nth-child(5)::after { animation-delay: 5s; }
+  .dots i:nth-child(6)::after { animation-delay: 6s; }
+  @keyframes fill { to { opacity: 1; } }
 </style>
 
 <div class="loader" id="loader" role="status" aria-live="polite">
   <div class="loader-in">
-    <svg viewBox="0 0 64 110" aria-hidden="true"><path d="M32 72 C28 84 38 92 31 108" fill="none" stroke="#37302c" stroke-width="2"/><path d="M32 4 C50 4 60 18 60 34 C60 52 46 66 34 70 L37 75 L27 75 L30 70 C18 66 4 52 4 34 C4 18 14 4 32 4 Z" fill="#d42a22" stroke="#7a1712" stroke-width="2"/><ellipse cx="20" cy="24" rx="5" ry="9" fill="#fff" opacity=".5" transform="rotate(20 20 24)"/></svg>
-    <h2>Setting up six openings</h2>
+    <div class="inflate" aria-hidden="true">
+      <svg viewBox="0 0 64 110"><path d="M32 72 C28 84 38 92 31 108" fill="none" stroke="#37302c" stroke-width="2"/></svg>
+      <svg class="puff" viewBox="0 0 64 110"><path d="M32 4 C50 4 60 18 60 34 C60 52 46 66 34 70 L37 75 L27 75 L30 70 C18 66 4 52 4 34 C4 18 14 4 32 4 Z" fill="#d42a22" stroke="#7a1712" stroke-width="2"/><ellipse cx="20" cy="24" rx="5" ry="9" fill="#fff" opacity=".5" transform="rotate(20 20 24)"/></svg>
+    </div>
+    <h2>Inflating…</h2>
+    <div class="dots" id="dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
   </div>
 </div>
 
@@ -191,7 +229,6 @@
     if (d.type === 'ready') it.ready = true;
     if (d.type === 'hello' || d.type === 'ready') { it.iframe.classList.add('on'); it.fig.classList.add('on'); it.sent = -1; sync(); }
     if (d.type === 'hello') loadNext();
-    updateLoader();
   });
 
   // Load the openings one after another, top first. All six at once fight over the same thread
@@ -303,19 +340,6 @@
   });
 
   window.galleryScene = { duration: DURATION, fps: FPS, play, pause, seek, get time() { return frame / FPS; }, get playing() { return playing; } };
-
-  /* ---- the loading cover ---- */
-  // It covers the page until the first opening has trimmed itself down to its picture. The rest
-  // load one by one below it, each showing a placeholder until it's up.
-  const loader = $('loader');
-  function updateLoader() {
-    if (items[0].hello) liftLoader();
-  }
-  function liftLoader() {
-    if (loader.classList.contains('done')) return;
-    loader.classList.add('done');
-  }
-  setTimeout(liftLoader, 3000); // never hold the page on one slow frame
 
   show(0);
   if (THEME) renderMusic();
