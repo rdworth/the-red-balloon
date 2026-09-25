@@ -1,0 +1,1149 @@
+<title>Balloon in Marker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Kalam:wght@400;700&display=swap">
+<style>
+  /* Alternate take of scene 1: shaky marker on animation bond paper.
+     Nothing here is shared with the craft-paper opening except the music. */
+  :root {
+    --ground: #f3f1ec;
+    --sheet: #fffdf8;
+    --ink: #1d1b22;
+    --ink-soft: #5c5866;
+    --red: #e5262f;
+    --cyan: #4aa3c7;
+    --rule: rgba(29, 27, 34, .14);
+    --hot: rgba(229, 38, 47, .09);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #17161b;
+      --sheet: #221f27;
+      --ink: #f1ede4;
+      --ink-soft: #aaa4b3;
+      --red: #ff4a4f;
+      --cyan: #7cc6e4;
+      --rule: rgba(241, 237, 228, .16);
+      --hot: rgba(255, 74, 79, .14);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #17161b;
+    --sheet: #221f27;
+    --ink: #f1ede4;
+    --ink-soft: #aaa4b3;
+    --red: #ff4a4f;
+    --cyan: #7cc6e4;
+    --rule: rgba(241, 237, 228, .16);
+    --hot: rgba(255, 74, 79, .14);
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: "Kalam", "Comic Sans MS", "Chalkboard SE", cursive;
+    font-size: 18px;
+    line-height: 1.45;
+    padding-inline: 16px;
+    padding-block: 28px 56px;
+  }
+  .wrap { max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+  header { display: flex; flex-direction: column; gap: 6px; }
+  .eyebrow { margin: 0; font-size: 14px; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-soft); }
+  h1 {
+    margin: 0;
+    font-family: "Permanent Marker", "Comic Sans MS", cursive;
+    font-weight: 400;
+    font-size: clamp(34px, 6vw, 58px);
+    line-height: 1.05;
+    text-wrap: balance;
+    transform: rotate(-.6deg);
+  }
+  h1 .red { color: var(--red); }
+  .lede { margin: 0; max-width: 64ch; color: var(--ink-soft); }
+
+  .screen {
+    position: relative;
+    padding: 10px;
+    background: var(--ink);
+    border-radius: 6px 10px 5px 12px / 12px 5px 10px 6px;
+    transform: rotate(-.25deg);
+  }
+  canvas { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; max-width: 100%; background: #fbf8f1; cursor: pointer; border-radius: 2px; }
+
+  .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; }
+  .btn {
+    font: inherit; font-weight: 700; font-size: 17px;
+    color: var(--ink); background: var(--sheet);
+    border: 2.5px solid var(--ink);
+    border-radius: 14px 5px 12px 6px / 6px 12px 5px 14px;
+    padding: 6px 16px; cursor: pointer;
+  }
+  .btn.primary { background: var(--red); border-color: var(--red); color: #fff; }
+  .btn:hover { transform: rotate(-1deg); }
+  .btn:focus-visible, .scrub:focus-visible, .beat button:focus-visible { outline: 3px solid var(--cyan); outline-offset: 3px; }
+  .scrub { flex: 1 1 220px; min-width: 0; accent-color: var(--red); height: 28px; }
+  .clock { font-variant-numeric: tabular-nums; font-size: 18px; min-width: 9ch; text-align: right; }
+
+  .sheet { background: var(--sheet); border: 2px solid var(--rule); border-radius: 4px; padding: 20px 20px 22px; display: flex; flex-direction: column; gap: 12px; }
+  .sheet h2 { margin: 0; font-family: "Permanent Marker", "Comic Sans MS", cursive; font-weight: 400; font-size: 26px; line-height: 1.1; }
+  .sheet .meta { margin: 0; color: var(--ink-soft); font-size: 16px; max-width: 70ch; }
+  .beats { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+  .beat button {
+    width: 100%;
+    display: grid; grid-template-columns: 6.6em 1fr; gap: 2px 14px; align-items: baseline;
+    font: inherit; color: inherit; text-align: left;
+    background: none; border: 0; border-top: 1px dashed var(--rule); padding: 8px 6px; cursor: pointer;
+  }
+  .beat:first-child button { border-top: 0; }
+  .beat button:hover { background: var(--hot); }
+  .beat .t { font-variant-numeric: tabular-nums; color: var(--ink-soft); font-size: 16px; }
+  .beat .d { font-size: 17px; }
+  .beat .d b { font-family: "Permanent Marker", "Comic Sans MS", cursive; font-weight: 400; margin-right: .35em; }
+  .beat .cam { display: block; color: var(--ink-soft); font-size: 15px; }
+  .beat .cam::before { content: "Camera: "; letter-spacing: .04em; text-transform: uppercase; font-size: 12px; }
+  .beat.now button { background: var(--hot); }
+  .beat.now .t { color: var(--red); }
+  .beat .cue { color: var(--red); font-size: 15px; white-space: nowrap; }
+  @media (max-width: 520px) {
+    .beat button { grid-template-columns: 1fr; gap: 0; }
+    .screen { padding: 5px; }
+  }
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">The Red Balloon · Scene 1, alternate take · 20 seconds</p>
+    <h1>The <span class="red">balloon</span> drifts over Paris, in marker</h1>
+    <p class="lede">The same opening, redrawn in shaky felt-tip marker in the spirit of Bill Plympton. The city is built in 3D, so the camera can circle the balloon in the clouds, swoop over the chimneys, duck under the laundry and crane down the lamppost to Pascal's shoes. Every drawing boils, 12 a second, to the same little waltz.</p>
+  </header>
+
+  <div class="screen">
+    <canvas id="stage" width="1280" height="720" role="img" aria-label="Hand-drawn marker animation: a red balloon drifts through clouds over Paris, the camera swoops over rooftops and under a laundry line, a pigeon flies at the lens, the balloon's string snags on a lamppost, and Pascal walks in and looks up at it."></canvas>
+  </div>
+
+  <div class="controls">
+    <button class="btn primary" id="play" type="button">Play</button>
+    <button class="btn" id="restart" type="button">From the top</button>
+    <button class="btn" id="sound" type="button" aria-pressed="true">Sound on</button>
+    <input class="scrub" id="scrub" type="range" min="0" max="239" step="1" value="0" aria-label="Scrub through the 240 drawings">
+    <span class="clock" id="clock">0:00.0 / 0:20</span>
+  </div>
+
+  <section class="sheet" aria-labelledby="beat-title">
+    <h2 id="beat-title">Shot list</h2>
+    <p class="meta">20 seconds, 240 drawings at 12 fps, over 12 bars of waltz. Same beats as the paper version; the camera moves are new. Red notes mark where a sound and a movement land together. Tap a beat to jump to it.</p>
+    <ol class="beats" id="beats"></ol>
+  </section>
+</div>
+
+<script src="music/opening-theme.js"></script>
+<script>
+(() => {
+  'use strict';
+  /* =====================================================================
+     Timing: 20 s, 12 drawings a second, synced to music/opening-theme.js
+     ===================================================================== */
+  const DURATION = 20, FPS = 12, FRAMES = DURATION * FPS;
+  const BEATS = [
+    { t: 0, end: 3, name: 'Sky', text: 'The balloon drifts alone through the clouds, the Eiffel Tower far off.', cam: 'circles the balloon on a Dutch tilt while a cloud slides past the lens.' },
+    { t: 3, end: 7, name: 'Rooftops', text: 'It sinks toward the zinc roofs and smoking chimney pots.', cam: 'swoops down behind it and banks low over the chimneys like a bird.' },
+    { t: 7, end: 10, name: 'Laundry', text: 'It drops into the street and brushes a laundry line; the washing flaps.', cam: 'dives into the street canyon and slides under the line.' },
+    { t: 10, end: 12.5, name: 'Pigeon', text: 'A pigeon on a balcony rail hops on the chirp, then flaps straight at us.', cam: 'close and tight on the rail; the pigeon nearly hits the lens.', cue: 'chirp 0:10, wings 0:10.6' },
+    { t: 12.5, end: 16, name: 'Snag', text: "It sinks to the street and the string catches on the lamppost's ladder bar. The balloon stretches and bobs.", cam: 'spirals down with it, then a shake and a punch-in on the plink.', cue: 'plink 0:13.9' },
+    { t: 16, end: 20, name: 'Shoes', text: "Pascal's shoes walk in on the beat and stop. He looks up at the balloon.", cam: 'drops down the post to pavement height, tracks the shoes, then cranes back to a low angle.', cue: 'four steps from 0:16.7' },
+  ];
+  const THEME = window.OpeningTheme;
+  const MUSIC_BEAT = DURATION / 36;
+  const CUES = {
+    pigeon: THEME ? THEME.cueTime('pigeon', DURATION) : 10,
+    flap: (THEME ? THEME.cueTime('pigeon', DURATION) : 10) + MUSIC_BEAT,
+    snag: THEME ? THEME.cueTime('snag', DURATION) : 25 * MUSIC_BEAT,
+    steps: THEME && THEME.stepTimes ? THEME.stepTimes(DURATION) : [30, 31, 32, 33].map(b => b * MUSIC_BEAT),
+  };
+
+  /* =====================================================================
+     Marker palette
+     ===================================================================== */
+  const K = {
+    paper: '#fbf8f1', ink: '#1d1b22', inkSoft: '#4a4652',
+    sky: '#9fd3ea', skyD: '#6fb3d3',
+    red: '#e5262f', redD: '#a3141c', redL: '#ff8a7a',
+    ground: '#e4dfd1', street: '#b3b0a8', walk: '#d6d0c2',
+    zinc: '#8a97a6', zincD: '#5f6b7a',
+    post: '#2f4b40', glass: '#f6e7a0',
+    skin: '#f3c8a2', hair: '#4a2f22', coat: '#7b8896', coatD: '#56606c', shorts: '#46444f', sock: '#f3f0e8', shoe: '#2b2528', satchel: '#8c5a33',
+    pigeon: '#9098a8', pigeonD: '#5d6375', neck: '#6fa08f',
+    eiffel: '#6a7892',
+  };
+  const WALLS = ['#f0e3c6', '#e5d6bf', '#d9dde2', '#eed3af', '#e9e0d2', '#dccab4', '#e8d9b0'];
+  const SHUTTERS = ['#5f84a6', '#7d9f68', '#a0805c', '#76729a', '#4f8d8b', '#b36d4f'];
+  const AWNINGS = ['#3f7fbf', '#2f8f6f', '#d8a02a', '#6a5aa0'];
+
+  /* =====================================================================
+     Randomness: one generator for the city layout (fixed), one reseeded
+     on every drawing so the lines boil but a given frame always looks the same.
+     ===================================================================== */
+  const mulberry = a => () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  const lay = mulberry(19560925);
+  let rnd = mulberry(1);
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const ease = t => { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); };
+  const add = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+  const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+  const mul = (a, s) => [a[0] * s, a[1] * s, a[2] * s];
+  const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+  const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+  const norm = a => { const l = Math.hypot(a[0], a[1], a[2]) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };
+  const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+  const mix3 = (a, b, t) => [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)];
+
+  /* Monotone cubic interpolation through keyframes, so moves ease without overshoot. */
+  function pchip(ts, ys) {
+    const n = ts.length, h = [], d = [], m = new Array(n);
+    for (let i = 0; i < n - 1; i++) { h[i] = ts[i + 1] - ts[i]; d[i] = (ys[i + 1] - ys[i]) / h[i]; }
+    m[0] = d[0]; m[n - 1] = d[n - 2];
+    for (let i = 1; i < n - 1; i++) {
+      if (d[i - 1] * d[i] <= 0) m[i] = 0;
+      else { const w1 = 2 * h[i] + h[i - 1], w2 = h[i] + 2 * h[i - 1]; m[i] = (w1 + w2) / (w1 / d[i - 1] + w2 / d[i]); }
+    }
+    return t => {
+      if (t <= ts[0]) return ys[0];
+      if (t >= ts[n - 1]) return ys[n - 1];
+      let i = 0; while (t > ts[i + 1]) i++;
+      const hh = h[i], s = (t - ts[i]) / hh, s2 = s * s, s3 = s2 * s;
+      return (2 * s3 - 3 * s2 + 1) * ys[i] + (s3 - 2 * s2 + s) * hh * m[i] + (-2 * s3 + 3 * s2) * ys[i + 1] + (s3 - s2) * hh * m[i + 1];
+    };
+  }
+  function track(keys, get) {
+    const ts = keys.map(k => k.t), first = get(keys[0]);
+    if (typeof first === 'number') return pchip(ts, keys.map(get));
+    const fs = [0, 1, 2].map(i => pchip(ts, keys.map(k => get(k)[i])));
+    return t => fs.map(f => f(t));
+  }
+
+  /* =====================================================================
+     The story in world space (metres; y is up, the street runs along x)
+     ===================================================================== */
+  const SNAG_AT = [0, 4.3, -4.22];              // street-side end of the lamppost's ladder bar
+  const BALLOON_R = 0.62, STRING_L = 2.5;
+  const SNAG_POSE = add(SNAG_AT, [0.12, 1.25, 0.05]);
+  const balloonKeys = [
+    { t: 0, p: [-44, 44, -2] },
+    { t: 1.5, p: [-40.5, 41.5, -3.5] },
+    { t: 3, p: [-35, 35, -6] },
+    { t: 5, p: [-26.5, 27.5, -10.5] },
+    { t: 7, p: [-18, 21.5, -7.5] },
+    { t: 8.5, p: [-12, 14.2, -3] },
+    { t: 10, p: [-5.6, 11, -4.7] },
+    { t: 11.5, p: [-2.6, 8.6, -4.4] },
+    { t: 12.8, p: [-1.1, 6.9, -4.5] },
+    { t: 13.3, p: [-0.4, 6.0, -4.3] },
+    { t: CUES.snag, p: SNAG_POSE },
+  ];
+  const balloonPath = track(balloonKeys, k => k.p);
+  function balloonAt(t) {
+    if (t >= CUES.snag) {
+      const dt = t - CUES.snag, e = Math.exp(-1.1 * dt);
+      return add(SNAG_POSE, [0.09 * Math.sin(dt * 3.1) * e + 0.04 * Math.sin(t * 1.3), 0.34 * e * Math.sin(dt * 6.5) + 0.05 * Math.sin(t * 2), 0.03 * Math.sin(t * 1.7)]);
+    }
+    const w = clamp((13.2 - t) / 2, 0, 1);
+    return add(balloonPath(t), [0.3 * Math.sin(1.3 * t) * w, 0.22 * Math.sin(0.9 * t + 1) * w, 0.2 * Math.sin(0.7 * t) * w]);
+  }
+  function balloonStretch(t) {
+    const dt = t - CUES.snag;
+    const breathe = 1 + 0.025 * Math.sin(t * 2.3);
+    return dt >= 0 ? breathe + 0.24 * Math.exp(-3 * dt) * Math.cos(dt * 16) : breathe;
+  }
+
+  /* Camera: position keys, an aim point, how much it follows the balloon,
+     field of view and roll (degrees). */
+  const camKeys = [
+    { t: 0, p: [-50, 38, 12], aim: [-44, 44, -2], f: 1, fov: 42, roll: -9 },
+    { t: 1.5, p: [-50.5, 46.5, 5], aim: [-42, 42, -3], f: 1, fov: 44, roll: 3 },
+    { t: 3, p: [-46, 40, -2], aim: [-35, 33, -6], f: 1, fov: 48, roll: 0 },
+    { t: 5, p: [-35, 29, -4], aim: [-26, 26, -10], f: 1, fov: 58, roll: -11 },
+    { t: 7, p: [-24.5, 17, 0], aim: [-18, 21, -7], f: 1, fov: 56, roll: 7 },
+    { t: 8.5, p: [-15, 11, 2], aim: [-11, 13, -3], f: 1, fov: 54, roll: -4 },
+    { t: 9.4, p: [-8.8, 10.2, 0.2], aim: [-6.5, 11, -5], f: 0.7, fov: 46, roll: 2 },
+    { t: 10, p: [-8.5, 11.4, -1.8], aim: [-5.1, 10.6, -6.2], f: 0.3, fov: 42, roll: 0 },
+    { t: 10.6, p: [-8.0, 11.5, -1.6], aim: [-4.6, 10.8, -5.8], f: 0.3, fov: 44, roll: 0 },
+    { t: 11.6, p: [-1.2, 13.2, -0.8], aim: [-2.5, 8.6, -4.4], f: 1, fov: 46, roll: -10 },
+    { t: 12.8, p: [2.8, 10.2, -0.2], aim: [-1.1, 6.9, -4.5], f: 1, fov: 44, roll: 8 },
+    { t: CUES.snag, p: [3.6, 5.6, 0.8], aim: SNAG_AT, f: 0.5, fov: 38, roll: 0 },
+    { t: 15, p: [3.2, 5.2, 0.4], aim: SNAG_AT, f: 0.45, fov: 42, roll: -2 },
+    { t: 16, p: [-1.0, 0.24, -3.9], aim: [-1.4, 0.12, -5.4], f: 0, fov: 48, roll: 0 },
+    { t: 18.4, p: [-0.9, 0.26, -3.9], aim: [-1.3, 0.14, -5.4], f: 0, fov: 48, roll: 0 },
+    { t: 19.2, p: [-0.2, 0.3, -2.0], aim: [-0.8, 2.0, -5.0], f: 0, fov: 64, roll: 2 },
+    { t: 20, p: [0.3, 0.35, -0.9], aim: [-0.5, 2.8, -5.0], f: 0, fov: 74, roll: 4 },
+  ];
+  const camPos = track(camKeys, k => k.p), camAim = track(camKeys, k => k.aim);
+  const camFollow = track(camKeys, k => k.f), camFov = track(camKeys, k => k.fov), camRoll = track(camKeys, k => k.roll);
+
+  const W = 1280, H = 720, NEAR = 0.25;
+  const cam = { p: [0, 0, 0], r: [1, 0, 0], u: [0, 1, 0], f: [0, 0, 1], foc: 800 };
+  function setCamera(t) {
+    const dt = t - CUES.snag;
+    let p = camPos(t);
+    if (dt >= 0 && dt < 0.8) { const a = 0.07 * Math.exp(-5 * dt); p = add(p, [Math.sin(dt * 61) * a, Math.cos(dt * 47) * a, 0]); }
+    const aim = mix3(camAim(t), add(balloonAt(t), [0, -0.3, 0]), clamp(camFollow(t), 0, 1));
+    let fov = camFov(t);
+    if (dt >= 0) fov -= 5 * Math.exp(-4 * dt);
+    const f = norm(sub(aim, p));
+    let r = norm(cross(f, [0, 1, 0])); let u = cross(r, f);
+    const a = camRoll(t) * Math.PI / 180, c = Math.cos(a), s = Math.sin(a);
+    cam.r = [r[0] * c + u[0] * s, r[1] * c + u[1] * s, r[2] * c + u[2] * s];
+    cam.u = [u[0] * c - r[0] * s, u[1] * c - r[1] * s, u[2] * c - r[2] * s];
+    cam.f = f; cam.p = p;
+    cam.foc = (H / 2) / Math.tan(fov * Math.PI / 360);
+  }
+
+  /* Projection with near-plane clipping */
+  function toCam(q) {
+    const d0 = q[0] - cam.p[0], d1 = q[1] - cam.p[1], d2 = q[2] - cam.p[2];
+    return [d0 * cam.r[0] + d1 * cam.r[1] + d2 * cam.r[2], d0 * cam.u[0] + d1 * cam.u[1] + d2 * cam.u[2], d0 * cam.f[0] + d1 * cam.f[1] + d2 * cam.f[2]];
+  }
+  const toScreen = c => [W / 2 + c[0] * cam.foc / c[2], H / 2 - c[1] * cam.foc / c[2], c[2]];
+  const cut = (a, b) => { const k = (NEAR - a[2]) / (b[2] - a[2]); return [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, NEAR]; };
+  function offscreen(s) {
+    let l = 1, r = 1, t = 1, b = 1;
+    for (const q of s) { if (q[0] > -60) l = 0; if (q[0] < W + 60) r = 0; if (q[1] > -60) t = 0; if (q[1] < H + 60) b = 0; }
+    return l || r || t || b;
+  }
+  function poly3(pts) {
+    const c = pts.map(toCam), out = [];
+    for (let i = 0; i < c.length; i++) {
+      const a = c[i], b = c[(i + 1) % c.length], ai = a[2] >= NEAR, bi = b[2] >= NEAR;
+      if (ai) out.push(a);
+      if (ai !== bi) out.push(cut(a, b));
+    }
+    if (out.length < 3) return null;
+    const s = out.map(toScreen);
+    return offscreen(s) ? null : s;
+  }
+  function line3(pts) {
+    const c = pts.map(toCam), out = [];
+    let cur = [];
+    for (let i = 0; i < c.length; i++) {
+      const a = c[i];
+      if (i === 0) { if (a[2] >= NEAR) cur.push(a); continue; }
+      const b = c[i - 1], ai = a[2] >= NEAR, bi = b[2] >= NEAR;
+      if (ai && bi) cur.push(a);
+      else if (bi && !ai) { cur.push(cut(b, a)); if (cur.length > 1) out.push(cur); cur = []; }
+      else if (!bi && ai) cur = [cut(b, a), a];
+    }
+    if (cur.length > 1) out.push(cur);
+    return out.map(l => l.map(toScreen)).filter(s => !offscreen(s));
+  }
+  const pt3 = q => { const c = toCam(q); return c[2] < NEAR ? null : toScreen(c); };
+  const weight = z => clamp(2 + 22 / z, 1.3, 6);
+
+  /* =====================================================================
+     Marker toolkit: every line wobbles, overshoots and doubles up a little,
+     and fills never quite sit inside their lines.
+     ===================================================================== */
+  const cv = document.getElementById('stage');
+  const ctx = cv.getContext('2d');
+
+  function resample(pts, step) {
+    const out = [pts[0]];
+    for (let i = 1; i < pts.length; i++) {
+      const a = pts[i - 1], b = pts[i], dx = b[0] - a[0], dy = b[1] - a[1];
+      const n = Math.max(1, Math.min(200, Math.ceil(Math.hypot(dx, dy) / step)));
+      for (let k = 1; k <= n; k++) out.push([a[0] + dx * k / n, a[1] + dy * k / n]);
+    }
+    return out;
+  }
+  function wobble(pts, wob) {
+    const n = pts.length, out = [];
+    const ph = rnd() * 6.283, fr = 0.03 + rnd() * 0.05, amp = wob * (0.5 + rnd() * 0.9), ph2 = rnd() * 6.283;
+    let s = 0;
+    for (let i = 0; i < n; i++) {
+      if (i) s += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
+      const a = pts[Math.max(0, i - 1)], b = pts[Math.min(n - 1, i + 1)];
+      const tx = b[0] - a[0], ty = b[1] - a[1], l = Math.hypot(tx, ty) || 1;
+      const o = amp * Math.sin(s * fr + ph) + wob * 0.35 * Math.sin(s * 0.23 + ph2) + (rnd() - 0.5) * wob * 0.45;
+      out.push([pts[i][0] - ty / l * o, pts[i][1] + tx / l * o]);
+    }
+    return out;
+  }
+  function extend(pts, a, b) {
+    const n = pts.length, p0 = pts[0], p1 = pts[1], q0 = pts[n - 1], q1 = pts[n - 2];
+    const l0 = Math.hypot(p0[0] - p1[0], p0[1] - p1[1]) || 1, l1 = Math.hypot(q0[0] - q1[0], q0[1] - q1[1]) || 1;
+    return [[p0[0] + (p0[0] - p1[0]) / l0 * a, p0[1] + (p0[1] - p1[1]) / l0 * a], ...pts.slice(1, -1), [q0[0] + (q0[0] - q1[0]) / l1 * b, q0[1] + (q0[1] - q1[1]) / l1 * b]];
+  }
+  function trace(Q) { ctx.beginPath(); ctx.moveTo(Q[0][0], Q[0][1]); for (let i = 1; i < Q.length; i++) ctx.lineTo(Q[i][0], Q[i][1]); }
+  function mline(pts, o = {}) {
+    if (!pts || pts.length < 2) return;
+    const w = o.w ?? 3, wob = o.wob ?? 1.2;
+    let P;
+    if (o.closed) {
+      const k = 0.15 + rnd() * 0.3;
+      P = pts.concat([pts[0], [lerp(pts[0][0], pts[1][0], k), lerp(pts[0][1], pts[1][1], k)]]);
+    } else {
+      P = extend(pts, o.ov ?? (-1.5 + rnd() * 7), o.ov ?? (-1.5 + rnd() * 7));
+    }
+    const R = resample(P, 14);
+    const passes = o.single || w < 1.6 ? 1 : 2;
+    ctx.strokeStyle = o.col || K.ink; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    for (let p = 0; p < passes; p++) {
+      const Q = wobble(R, wob * (p ? 1.4 : 1));
+      ctx.globalAlpha = (o.a ?? 0.92) * (p ? 0.45 : 1);
+      ctx.lineWidth = p ? w * 0.5 : w;
+      trace(Q); ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  }
+  function pathOf(pts, dx = 0, dy = 0) { ctx.beginPath(); ctx.moveTo(pts[0][0] + dx, pts[0][1] + dy); for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0] + dx, pts[i][1] + dy); ctx.closePath(); }
+  function bbox(pts) { let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; for (const q of pts) { if (q[0] < x0) x0 = q[0]; if (q[0] > x1) x1 = q[0]; if (q[1] < y0) y0 = q[1]; if (q[1] > y1) y1 = q[1]; } return [Math.max(x0, -50), Math.max(y0, -50), Math.min(x1, W + 50), Math.min(y1, H + 50)]; }
+  // parallel strokes clipped to a shape: marker streaks (wide) or hatching (thin)
+  function strokesIn(pts, { ang = 0.6, gap = 8, w = 1.2, col = K.ink, a = 0.45, blend = 'source-over', jit = 2 } = {}) {
+    const [x0, y0, x1, y1] = bbox(pts);
+    if (x1 - x0 < 3 || y1 - y0 < 3) return;
+    const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, R = Math.hypot(x1 - x0, y1 - y0) / 2 + 4;
+    if (R / gap > 160) gap = R / 160;
+    const dx = Math.cos(ang), dy = Math.sin(ang);
+    ctx.save(); pathOf(pts); ctx.clip();
+    ctx.globalCompositeOperation = blend; ctx.globalAlpha = a; ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineCap = 'round';
+    ctx.beginPath();
+    for (let k = -R; k <= R; k += gap) {
+      const ox = cx - dy * k, oy = cy + dx * k, s = R * (0.7 + rnd() * 0.3), e = R * (0.7 + rnd() * 0.3);
+      ctx.moveTo(ox - dx * s + (rnd() - .5) * jit, oy - dy * s + (rnd() - .5) * jit);
+      ctx.lineTo(ox + dx * e + (rnd() - .5) * jit, oy + dy * e + (rnd() - .5) * jit);
+    }
+    ctx.stroke(); ctx.restore();
+  }
+  function area(pts) { let s = 0; for (let i = 0; i < pts.length; i++) { const a = pts[i], b = pts[(i + 1) % pts.length]; s += a[0] * b[1] - b[0] * a[1]; } return Math.abs(s / 2); }
+  function mfill(pts, col, o = {}) {
+    if (!pts || pts.length < 3) return;
+    const mis = o.mis ?? 2.5;
+    ctx.globalAlpha = o.a ?? 1; ctx.fillStyle = col;
+    pathOf(pts, (rnd() - 0.5) * mis * 2, (rnd() - 0.5) * mis * 2); ctx.fill();
+    ctx.globalAlpha = 1;
+    if (o.streak !== false && area(pts) > 900) strokesIn(pts, { ang: o.ang ?? -0.35 + rnd() * 0.1, gap: o.gap ?? 13, w: (o.gap ?? 13) * 1.15, col, a: 0.22, blend: 'multiply', jit: 3 });
+  }
+  function shape(pts, col, o = {}) {
+    if (!pts) return;
+    mfill(pts, col, o);
+    if (o.hatch) strokesIn(pts, { ang: o.hatchAng ?? 1.0, gap: o.hatchGap ?? 7, w: 1.1, a: o.hatch });
+    if (o.line !== false) mline(pts, { closed: true, w: o.w ?? 2.4, wob: o.wob ?? 1.1, col: o.lineCol });
+  }
+  function dot2(q, r, col) { ctx.fillStyle = col; ctx.beginPath(); ctx.arc(q[0] + (rnd() - .5), q[1] + (rnd() - .5), r, 0, 6.283); ctx.fill(); }
+  function circlePts(cx, cy, rx, ry, n = 18, rot = 0) {
+    const out = [], c = Math.cos(rot), s = Math.sin(rot);
+    for (let i = 0; i < n; i++) { const a = i / n * 6.283, x = Math.cos(a) * rx, y = Math.sin(a) * ry; out.push([cx + x * c - y * s, cy + x * s + y * c]); }
+    return out;
+  }
+  // a thick 3D tube (lamppost, legs, arms) drawn as a filled band with two marker edges
+  function rod(a, b, ra, rb, col, o = {}) {
+    let ca = toCam(a), cb = toCam(b);
+    if (ca[2] < NEAR && cb[2] < NEAR) return;
+    if (ca[2] < NEAR) ca = cut(cb, ca); if (cb[2] < NEAR) cb = cut(ca, cb);
+    const sa = toScreen(ca), sb = toScreen(cb);
+    const pa = Math.max(0.8, ra * cam.foc / ca[2]), pb = Math.max(0.8, rb * cam.foc / cb[2]);
+    let dx = sb[0] - sa[0], dy = sb[1] - sa[1]; const l = Math.hypot(dx, dy) || 1; const nx = -dy / l, ny = dx / l;
+    const q = [[sa[0] + nx * pa, sa[1] + ny * pa], [sb[0] + nx * pb, sb[1] + ny * pb], [sb[0] - nx * pb, sb[1] - ny * pb], [sa[0] - nx * pa, sa[1] - ny * pa]];
+    if (offscreen(q)) return;
+    mfill(q, col, { mis: 1.2, streak: false });
+    if (o.shade) strokesIn(q, { ang: Math.atan2(dy, dx) + 0.9, gap: 5, w: 1, a: o.shade });
+    const w = o.w ?? weight(Math.min(ca[2], cb[2]));
+    mline([q[0], q[1]], { w, wob: 0.8 }); mline([q[3], q[2]], { w, wob: 0.8 });
+    if (o.caps) { mline([q[1], q[2]], { w: w * 0.8, wob: 0.6 }); mline([q[3], q[0]], { w: w * 0.8, wob: 0.6 }); }
+    return { sa, sb, pa, pb };
+  }
+  // flat cut-out shapes placed in 3D: local (x, y) in a vertical plane at depth z
+  const flat = (ox, oy, z, pts, sx = 1) => pts.map(([x, y]) => [ox + x * sx, oy + y, z]);
+
+  /* =====================================================================
+     The city
+     ===================================================================== */
+  const LIGHT = norm([-0.5, 0.8, 0.6]);
+  const buildings = [];
+  function makeBuilding(x0, x1, h, zStreet, dir, detail, extra = {}) {
+    const depth = 10;
+    const b = {
+      x0, x1, h, rh: 2.4 + lay() * 1, dir, detail,
+      zA: dir > 0 ? zStreet - depth : zStreet, zB: dir > 0 ? zStreet : zStreet + depth,
+      wall: WALLS[Math.floor(lay() * WALLS.length)], shut: SHUTTERS[Math.floor(lay() * SHUTTERS.length)],
+      awning: lay() < 0.45 ? AWNINGS[Math.floor(lay() * AWNINGS.length)] : null,
+      balconies: lay() < 0.4, seed: Math.floor(lay() * 1e6), chimneys: [], ...extra,
+    };
+    b.ri = 1.3;
+    b.floors = Math.floor(h / 3);
+    const nCh = detail ? 1 + (lay() < 0.5 ? 1 : 0) : (lay() < 0.5 ? 1 : 0);
+    for (let i = 0; i < nCh; i++) {
+      const cx = lerp(x0 + 1, x1 - 1.8, lay());
+      const cz = lerp(b.zA + b.ri + 0.5, b.zB - b.ri - 1.2, lay());
+      b.chimneys.push({ x: cx, z: cz, y: h + b.rh, w: 0.9 + lay() * 0.9, d: 0.6, hh: 1.4 + lay() * 0.8, pots: 2 + Math.floor(lay() * 3), smoke: detail && dir > 0 && cx > -48 && cx < 8 });
+    }
+    buildings.push(b);
+    return b;
+  }
+  function row(x0, x1, zStreet, dir, hMin, hMax, detail) {
+    let x = x0;
+    while (x < x1) { const w = 6.5 + lay() * 3.5; makeBuilding(x, Math.min(x + w, x1), hMin + lay() * (hMax - hMin), zStreet, dir, detail); x += w; }
+  }
+  row(-100, -8, -7, 1, 12, 15.2, 2);
+  makeBuilding(-8, -1.4, 15, -7, 1, 2, { pigeonBalcony: true, balconies: false, awning: '#3f7fbf', wall: '#eed3af', shut: '#5f84a6' });
+  row(-1.4, 70, -7, 1, 12, 15.5, 2);
+  row(-100, 70, 7, -1, 11, 15, 2);
+  [[-20, 13, 17], [-33, 13, 18], [-46, 14, 19], [-60, 14, 20]].forEach(([z, a, b]) => row(-140, 110, z, 1, a, b, 1));
+
+  const clouds = [
+    [-38, 50, -14, 5], [-52, 52, -10, 4], [-30, 47, 4, 3.5], [-60, 42, -30, 7], [-20, 55, -30, 6],
+    [-45, 37, -42, 8], [10, 50, -60, 10], [40, 45, -100, 12], [-70, 55, 10, 5], [-48.5, 42.5, 3.5, 1.1],
+    [-25, 40, -55, 7], [-5, 60, -20, 6], [20, 40, -35, 6], [-80, 46, -50, 9],
+  ].map(([x, y, z, r]) => {
+    const puffs = []; const n = 4 + Math.floor(lay() * 3);
+    for (let i = 0; i < n; i++) { const a = i / (n - 1) - 0.5; puffs.push([a * r * 1.8 + (lay() - .5) * r * .3, (1 - Math.abs(a) * 1.6) * r * 0.45 + lay() * r * 0.2, r * (0.45 + (1 - Math.abs(a)) * 0.35 + lay() * 0.12)]); }
+    return { p: [x, y, z], r, puffs };
+  });
+
+  const LAUNDRY = { x: -11, y0: 12.8, sag: 1.0, z0: -7, z1: 7 };
+  const lineY = z => LAUNDRY.y0 - LAUNDRY.sag * (1 - (z / 7) ** 2);
+  const GARMENTS = {
+    shirt: [[-.35, 0], [.35, 0], [.52, .26], [.36, .32], [.31, .78], [-.31, .78], [-.36, .32], [-.52, .26]],
+    sock: [[-.07, 0], [.07, 0], [.07, .36], [.19, .43], [.15, .52], [-.08, .46]],
+    towel: [[-.4, 0], [.4, 0], [.43, .92], [-.38, .89]],
+    shorts: [[-.28, 0], [.28, 0], [.33, .5], [.05, .52], [0, .26], [-.05, .52], [-.33, .5]],
+    dress: [[-.24, 0], [.24, 0], [.2, .3], [.46, 1.02], [-.46, 1.02], [-.2, .3]],
+  };
+  const laundry = [
+    [-5.6, 'shirt', '#f0cf45'], [-4.4, 'sock', '#5b86c5'], [-4.0, 'sock', '#5b86c5'], [-2.8, 'towel', '#f6f3ea'],
+    [-1.3, 'shorts', '#7fb07a'], [0.2, 'dress', '#e9a9bd'], [1.8, 'shirt', '#8fc3e3'], [3.3, 'towel', '#f3d9a4'], [4.5, 'sock', '#e6d34f'], [4.9, 'sock', '#e6d34f'],
+  ].map(([z, kind, col]) => ({ z, kind, col }));
+
+  const cobbles = [];
+  for (let x = -10; x <= 8; x += 0.42) for (let z = -4.3, r = 0; z <= 4.3; z += 0.34, r++) cobbles.push([x + (r % 2) * 0.21 + (lay() - .5) * .06, z + (lay() - .5) * .05, 0.13 + lay() * .05]);
+
+  /* =====================================================================
+     Pascal and the pigeon
+     ===================================================================== */
+  const FOOT_Z = { L: -5.25, R: -5.55 }, BODY_Z = -5.4;
+  const STEPS = [['R', -2.35], ['L', -1.8], ['R', -1.4], ['L', -1.25]];
+  function pascalAt(t) {
+    const feet = { R: { x: -3.0, lift: 0, tilt: 0 }, L: { x: -2.65, lift: 0, tilt: 0 } };
+    const sd = MUSIC_BEAT * 0.9;
+    let moving = 0;
+    for (let i = 0; i < STEPS.length; i++) {
+      const [f, x] = STEPS[i], T = CUES.steps[i];
+      if (t >= T) { feet[f].x = x; continue; }
+      if (t > T - sd) {
+        const k = (t - (T - sd)) / sd, e = ease(k);
+        feet[f].x = lerp(feet[f].x, x, e);
+        feet[f].lift = Math.sin(Math.PI * k) * 0.11;
+        feet[f].tilt = Math.sin(Math.PI * k) * 0.35 - (k > 0.8 ? (k - 0.8) * 1.5 : 0);
+        moving = Math.sin(Math.PI * k) * (f === 'R' ? 1 : -1);
+      }
+      break;
+    }
+    const lastT = CUES.steps[3];
+    const bx = (feet.L.x + feet.R.x) / 2 + 0.06 * clamp((lastT - t) * 2, 0, 1);
+    const look = ease((t - (lastT + 0.2)) / 0.8);
+    return { feet, bx, bob: Math.abs(moving) * 0.02, swing: moving, look };
+  }
+  function pigeonAt(t) {
+    const P0 = [-5.1, 10.52, -6.25];
+    if (t < CUES.flap) {
+      const hop = t >= CUES.pigeon ? Math.sin(Math.PI * clamp((t - CUES.pigeon) / 0.28, 0, 1)) * 0.12 : 0;
+      const peck = t < CUES.pigeon ? Math.max(0, Math.sin(t * 7.5)) ** 6 : 0;
+      return { p: add(P0, [0, hop, 0]), flying: false, peck, chirp: t >= CUES.pigeon && t < CUES.pigeon + 0.4 };
+    }
+    const f = t - CUES.flap;
+    return { p: add(P0, [2.5 * f + 0.6 * f * f, 0.75 * f + 0.9 * f * f, 6 * f]), flying: true, peck: 0, chirp: false };
+  }
+
+  /* =====================================================================
+     Drawing the pieces
+     ===================================================================== */
+  function drawSky(t) {
+    ctx.fillStyle = K.paper; ctx.fillRect(-20, -20, W + 40, H + 40);
+    // broad slanted marker streaks, shifted with the camera's heading so the sky turns with it
+    const yaw = Math.atan2(cam.f[0], -cam.f[2]), pitch = Math.asin(clamp(cam.f[1], -1, 1));
+    const shift = (yaw * cam.foc) % 34, lift = pitch * cam.foc * 0.3;
+    ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.lineCap = 'round';
+    ctx.strokeStyle = K.sky;
+    for (let k = -2; k < 40; k++) {
+      const y = k * 34 - shift * 0.4 + lift % 34;
+      ctx.globalAlpha = 0.38 + rnd() * 0.12; ctx.lineWidth = 30 + rnd() * 6;
+      const x = -80 - rnd() * 40, x2 = W + 80;
+      ctx.beginPath(); ctx.moveTo(x, y + (rnd() - .5) * 5 - x * 0.22); ctx.lineTo(x2, y + (rnd() - .5) * 5 - x2 * 0.22); ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawGround(t) {
+    const ground = poly3([[-600, 0, -600], [600, 0, -600], [600, 0, 600], [-600, 0, 600]]);
+    if (ground) mfill(ground, K.ground, { mis: 0, gap: 16 });
+    const street = poly3([[-400, 0, -4.5], [400, 0, -4.5], [400, 0, 4.5], [-400, 0, 4.5]]);
+    if (street) mfill(street, K.street, { mis: 0, gap: 15, ang: 0.15 });
+    for (const [a, b] of [[-7, -4.5], [4.5, 7]]) {
+      const w = poly3([[-400, 0, a], [400, 0, a], [400, 0, b], [-400, 0, b]]);
+      if (w) mfill(w, K.walk, { mis: 0, gap: 15 });
+    }
+    // curbs, with a second line for the gutter
+    for (const z of [-4.5, 4.5]) {
+      for (const s of line3([[-200, 0, z], [-60, 0, z], [-20, 0, z], [-5, 0, z], [5, 0, z], [20, 0, z], [60, 0, z], [200, 0, z]])) mline(s, { w: 2.2, wob: 1 });
+      for (const s of line3([[-200, 0, z * 0.95], [-20, 0, z * 0.95], [0, 0, z * 0.95], [20, 0, z * 0.95], [200, 0, z * 0.95]])) mline(s, { w: 1.2, wob: 1, a: 0.5 });
+    }
+    // paving joints and cobbles near the camera
+    const cx = cam.p[0];
+    ctx.save(); ctx.strokeStyle = K.ink; ctx.lineCap = 'round';
+    for (let x = Math.floor((cx - 30) / 1.3) * 1.3; x < cx + 30; x += 1.3) {
+      for (const s of line3([[x, 0, -7], [x, 0, -4.5]])) { ctx.globalAlpha = 0.5; ctx.lineWidth = 1.3; trace(wobble(resample(s, 12), 1)); ctx.stroke(); }
+    }
+    ctx.globalAlpha = 0.55; ctx.lineWidth = 1.3; ctx.beginPath();
+    for (const [x, z, w] of cobbles) {
+      if (Math.abs(x - cx) > 10 || Math.abs(z - cam.p[2]) > 12 || cam.p[1] > 14) continue;
+      const a = pt3([x - w, 0, z + 0.06]), b = pt3([x, 0, z + 0.12]), c = pt3([x + w, 0, z + 0.06]);
+      if (!a || !b || !c || Math.abs(c[0] - a[0]) < 3) continue;
+      ctx.moveTo(a[0] + (rnd() - .5) * 1.5, a[1]); ctx.quadraticCurveTo(b[0], b[1] + (rnd() - .5) * 2, c[0] + (rnd() - .5) * 1.5, c[1]);
+    }
+    ctx.stroke(); ctx.restore();
+    // scribbled contact shadows
+    const shadowAt = (x, z, r, a) => {
+      const ring = []; for (let i = 0; i < 10; i++) { const k = i / 10 * 6.283; ring.push([x + Math.cos(k) * r, 0, z + Math.sin(k) * r * 0.6]); }
+      const s = poly3(ring); if (s) strokesIn(s, { ang: 0.4, gap: 4, w: 1.2, a });
+    };
+    shadowAt(0.05, -4.9, 0.45, 0.5);
+    if (t > 15.8) { const P = pascalAt(t); shadowAt(P.bx, -5.4, 0.32, 0.5); }
+    if (t > 12) { const B = balloonAt(t); shadowAt(B[0], B[2], 0.5, 0.25 * clamp((14 - B[1]) / 8, 0, 1)); }
+  }
+
+  function drawEiffel() {
+    const O = [150, 0, -340], col = K.eiffel;
+    const legs = [[1, 1], [1, -1], [-1, 1], [-1, -1]];
+    const hw = s => 26 * Math.pow(1 - s, 2.4) + 1.2;
+    for (const [sx, sz] of legs) {
+      const pts = []; for (let i = 0; i <= 10; i++) { const s = i / 10; pts.push(add(O, [sx * hw(s), 300 * s, sz * hw(s)])); }
+      for (const l of line3(pts)) mline(l, { w: 1.6, col, a: 0.8 });
+    }
+    for (const s of [0.19, 0.38, 0.9]) {
+      const h = hw(s) + 2, y = 300 * s;
+      for (const l of line3([add(O, [-h, y, -h]), add(O, [h, y, -h]), add(O, [h, y, h]), add(O, [-h, y, h]), add(O, [-h, y, -h])])) mline(l, { w: 1.6, col, a: 0.8 });
+    }
+    const arch = []; for (let i = 0; i <= 8; i++) { const a = i / 8; arch.push(add(O, [-24 + 48 * a, 30 + Math.sin(Math.PI * a) * 18, 26])); }
+    for (const l of line3(arch)) mline(l, { w: 1.4, col, a: 0.7 });
+    for (const l of line3([add(O, [0, 300, 0]), add(O, [0, 325, 0])])) mline(l, { w: 1.4, col });
+  }
+
+  function drawCloud(c, t) {
+    const base = add(c.p, [t * 0.35, 0, 0]);
+    const circles = [];
+    for (const [dx, dy, r] of c.puffs) {
+      const s = pt3(add(base, [dx * cam.r[0], dy, dx * cam.r[2]]));
+      if (!s) continue;
+      circles.push([s[0], s[1], r * cam.foc / s[2]]);
+    }
+    if (!circles.length) return;
+    if (circles.every(([x, y, r]) => x + r < -40 || x - r > W + 40 || y + r < -40 || y - r > H + 40)) return;
+    const w = clamp(1.6 + 30 / dist(base, cam.p), 1.6, 5);
+    for (const [x, y, r] of circles) mline(circlePts(x, y, r, r * 0.92, 20), { closed: true, w, wob: Math.min(2, r * 0.05) });
+    ctx.fillStyle = K.paper;
+    for (const [x, y, r] of circles) { ctx.beginPath(); ctx.arc(x, y, Math.max(0, r - w * 0.9), 0, 6.283); ctx.fill(); }
+    // a couple of curls inside and a hatched belly
+    for (const [x, y, r] of circles.slice(1, 3)) mline(circlePts(x - r * .2, y + r * .1, r * .45, r * .35, 8).slice(4, 8), { w: w * 0.6, wob: 0.8, a: 0.6 });
+    const belly = circles.map(([x, y, r]) => [x, y + r * 0.55]);
+    if (belly.length > 1) { const left = circles[0], right = circles[circles.length - 1];
+      const band = [[left[0] - left[2] * .6, left[1] + left[2] * .4], ...belly, [right[0] + right[2] * .6, right[1] + right[2] * .4], [right[0], right[1] + right[2] * .9], [left[0], left[1] + left[2] * .9]];
+      strokesIn(band, { ang: 0.9, gap: 6, w: 1, a: 0.18, col: K.skyD }); }
+  }
+
+  function smokePuffs(ch, t) {
+    const out = [];
+    for (let j = 0; j < 4; j++) {
+      const age = (t * 0.35 + j / 4 + ch.x * 0.07) % 1;
+      out.push({ p: [ch.x + ch.w / 2 + age * 2.4, ch.y + ch.hh + 0.4 + age * 3.2, ch.z + ch.d / 2], r: 0.25 + age * 0.75, a: 1 - age });
+    }
+    return out;
+  }
+
+  function faceVisible(n, onFace) { return dot(n, sub(cam.p, onFace)) > 0; }
+  function drawBuilding(b, t) {
+    const { x0, x1, h, rh, zA, zB, ri } = b, H2 = h + rh;
+    const walls = [
+      { n: [0, 0, 1], pts: [[x0, 0, zB], [x1, 0, zB], [x1, h, zB], [x0, h, zB]], facade: b.dir > 0 },
+      { n: [0, 0, -1], pts: [[x1, 0, zA], [x0, 0, zA], [x0, h, zA], [x1, h, zA]], facade: b.dir < 0 },
+      { n: [-1, 0, 0], pts: [[x0, 0, zA], [x0, 0, zB], [x0, h, zB], [x0, H2, zB - ri], [x0, H2, zA + ri], [x0, h, zA]] },
+      { n: [1, 0, 0], pts: [[x1, 0, zB], [x1, 0, zA], [x1, h, zA], [x1, H2, zA + ri], [x1, H2, zB - ri], [x1, h, zB]] },
+    ];
+    const roofs = [
+      { n: norm([0, ri, rh]), pts: [[x0, h, zB], [x1, h, zB], [x1, H2, zB - ri], [x0, H2, zB - ri]], front: b.dir > 0 },
+      { n: norm([0, ri, -rh]), pts: [[x1, h, zA], [x0, h, zA], [x0, H2, zA + ri], [x1, H2, zA + ri]], front: b.dir < 0 },
+      { n: [0, 1, 0], pts: [[x0, H2, zA + ri], [x0, H2, zB - ri], [x1, H2, zB - ri], [x1, H2, zA + ri]] },
+    ];
+    const d = distToBox(b);
+    const w = clamp(1.4 + 26 / d, 1.4, 4.2);
+    for (const f of walls) {
+      if (!faceVisible(f.n, f.pts[0])) continue;
+      const s = poly3(f.pts); if (!s) continue;
+      const lit = dot(f.n, LIGHT);
+      shape(s, b.wall, { w, hatch: lit < 0.3 ? 0.42 : lit < 0.5 ? 0.18 : 0, hatchAng: 1.1 });
+      if (f.facade) drawFacade(b, t, w);
+    }
+    for (const f of roofs) {
+      if (!faceVisible(f.n, f.pts[0])) continue;
+      const s = poly3(f.pts); if (!s) continue;
+      shape(s, K.zinc, { w, hatch: dot(f.n, LIGHT) < 0.45 ? 0.3 : 0.1, hatchAng: -1.2, hatchGap: 9 });
+      if (f.front && b.detail > 1) drawDormers(b, w);
+    }
+    if (b.detail > 1 && b.balconies) drawBalconyRail(b, 2, (x0 + x1) / 2 - 1.3, (x0 + x1) / 2 + 1.3, w);
+    if (b.pigeonBalcony) drawBalconyRail(b, 3, -6.3, -3.9, w);
+  }
+  function distToBox(b) {
+    const q = cam.p;
+    const dx = Math.max(b.x0 - q[0], 0, q[0] - b.x1), dy = Math.max(-q[1], 0, q[1] - b.h - b.rh), dz = Math.max(b.zA - q[2], 0, q[2] - b.zB);
+    return Math.hypot(dx, dy, dz);
+  }
+  // facade coordinates: u across from x0, v up, out from the wall toward the street
+  const fz = (b, u, v, out = 0) => b.dir > 0 ? [b.x0 + u, v, b.zB + out] : [b.x1 - u, v, b.zA - out];
+  function rect(b, u0, u1, v0, v1, out = 0.02) { return poly3([fz(b, u0, v0, out), fz(b, u1, v0, out), fz(b, u1, v1, out), fz(b, u0, v1, out)]); }
+  function drawFacade(b, t, w) {
+    const width = b.x1 - b.x0;
+    // is a window even big enough to draw?
+    const probe = rect(b, width / 2 - 0.5, width / 2 + 0.5, 4, 5.6);
+    if (!probe) return;
+    const big = area(probe) > 60;
+    const cols = Math.max(1, Math.floor((width - 1) / 2.2)), gap = width / cols;
+    for (let f = 1; f < b.floors; f++) {
+      const v0 = f * 3 + 0.8, v1 = v0 + 1.6;
+      for (let c = 0; c < cols; c++) {
+        const u = gap * (c + 0.5);
+        const win = rect(b, u - 0.45, u + 0.45, v0, v1);
+        if (!win) continue;
+        if (!big) { mfill(win, '#3c4d63', { mis: 1, streak: false }); continue; }
+        shape(rect(b, u - 0.9, u - 0.47, v0, v1), b.shut, { w: w * 0.6, streak: false, mis: 1.5 });
+        shape(rect(b, u + 0.47, u + 0.9, v0, v1), b.shut, { w: w * 0.6, streak: false, mis: 1.5 });
+        shape(win, '#3c4d63', { w: w * 0.8, streak: false, mis: 1.5 });
+        const mid = line3([fz(b, u, v0, .03), fz(b, u, v1, .03)])[0];
+        if (mid) mline(mid, { w: 1.1, col: K.paper, a: 0.8, single: true });
+        const glint = line3([fz(b, u - 0.3, v1 - 0.25, .03), fz(b, u - 0.1, v1 - 0.55, .03)])[0];
+        if (glint) mline(glint, { w: 2, col: K.paper, a: 0.9, single: true });
+      }
+    }
+    if (!big) return;
+    // ground floor: a shopfront and a door, sometimes an awning
+    const shop = rect(b, 0.6, width * 0.62, 0.5, 2.5);
+    shape(shop, '#4a5a70', { w, streak: false });
+    shape(rect(b, width * 0.7, width * 0.7 + 1.1, 0, 2.4), '#6b4a36', { w, streak: false });
+    if (b.awning) {
+      const aw = poly3([fz(b, 0.4, 3.05, 0), fz(b, width * 0.66, 3.05, 0), fz(b, width * 0.66, 2.45, 1.25), fz(b, 0.4, 2.45, 1.25)]);
+      if (aw) {
+        mfill(aw, b.awning, { mis: 2 });
+        strokesIn(aw, { ang: Math.atan2(aw[3][1] - aw[0][1], aw[3][0] - aw[0][0]), gap: 11, w: 5, col: K.paper, a: 0.55 });
+        mline(aw, { closed: true, w });
+      }
+    }
+  }
+  function drawBalconyRail(b, floor, xa, xb, w) {
+    const toU = x => b.dir > 0 ? x - b.x0 : b.x1 - x;
+    const ua = toU(xa), ub = toU(xb), v = floor * 3 + 0.7, out = 0.8;
+    const slab = poly3([fz(b, ua, v, 0), fz(b, ub, v, 0), fz(b, ub, v, out), fz(b, ua, v, out)]);
+    if (slab) shape(slab, '#bfb4a2', { w: w * 0.8, streak: false });
+    const top = line3([fz(b, ua, v + 0.85, 0), fz(b, ua, v + 0.85, out), fz(b, ub, v + 0.85, out), fz(b, ub, v + 0.85, 0)]);
+    for (const l of top) mline(l, { w: w * 1.1 });
+    for (let u = ua; u <= ub + 1e-6; u += (ub - ua) / 9) {
+      for (const l of line3([fz(b, u, v, out), fz(b, u, v + 0.85, out)])) mline(l, { w: w * 0.6, wob: 0.6, single: true });
+    }
+  }
+  function drawDormers(b, w) {
+    const { x0, x1, h, rh, ri } = b;
+    const onSlope = (x, k) => b.dir > 0 ? [x, h + rh * k, b.zB - ri * k + 0.02] : [x, h + rh * k, b.zA + ri * k - 0.02];
+    const n = Math.max(1, Math.floor((x1 - x0) / 3.2));
+    for (let i = 0; i < n; i++) {
+      const x = lerp(x0, x1, (i + 0.5) / n);
+      const s = poly3([onSlope(x - 0.45, 0.2), onSlope(x + 0.45, 0.2), onSlope(x + 0.45, 0.72), onSlope(x, 0.9), onSlope(x - 0.45, 0.72)]);
+      if (s && area(s) > 30) shape(s, '#3c4d63', { w: w * 0.8, streak: false, mis: 1 });
+    }
+  }
+  function drawChimney(ch, t) {
+    const { x, z, y, w: cw, d, hh } = ch;
+    const x1 = x + cw, z1 = z + d, y1 = y + hh;
+    const faces = [
+      { n: [0, 0, 1], pts: [[x, y - 0.5, z1], [x1, y - 0.5, z1], [x1, y1, z1], [x, y1, z1]] },
+      { n: [0, 0, -1], pts: [[x1, y - 0.5, z], [x, y - 0.5, z], [x, y1, z], [x1, y1, z]] },
+      { n: [-1, 0, 0], pts: [[x, y - 0.5, z], [x, y - 0.5, z1], [x, y1, z1], [x, y1, z]] },
+      { n: [1, 0, 0], pts: [[x1, y - 0.5, z1], [x1, y - 0.5, z], [x1, y1, z], [x1, y1, z1]] },
+      { n: [0, 1, 0], pts: [[x, y1, z], [x, y1, z1], [x1, y1, z1], [x1, y1, z]] },
+    ];
+    const lw = clamp(1.4 + 22 / dist([x, y, z], cam.p), 1.4, 4.2);
+    for (const f of faces) {
+      if (!faceVisible(f.n, f.pts[0])) continue;
+      const s = poly3(f.pts); if (!s) continue;
+      shape(s, '#c9785a', { w: lw, streak: false, hatch: dot(f.n, LIGHT) < 0.3 ? 0.35 : 0 });
+    }
+    for (let i = 0; i < ch.pots; i++) {
+      const px = x + cw * (i + 0.5) / ch.pots, pz = z + d / 2;
+      rod([px, y1, pz], [px, y1 + 0.45, pz], 0.1, 0.12, '#d49a6c', { w: lw * 0.8, caps: true });
+    }
+  }
+  function drawSmoke(p) {
+    const s = pt3(p.p); if (!s) return;
+    const r = p.r * cam.foc / s[2]; if (r < 1.5) return;
+    ctx.fillStyle = K.paper; ctx.globalAlpha = 0.85 * p.a;
+    ctx.beginPath(); ctx.arc(s[0], s[1], r, 0, 6.283); ctx.fill(); ctx.globalAlpha = 1;
+    mline(circlePts(s[0], s[1], r, r * .9, 12), { closed: true, w: 1.4, a: 0.7 * p.a, single: true, wob: .8 });
+  }
+
+  function drawLaundryLine(t) {
+    const pts = []; for (let i = 0; i <= 14; i++) { const z = -7 + i; pts.push([LAUNDRY.x, lineY(z), z]); }
+    for (const l of line3(pts)) mline(l, { w: 1.6, wob: 0.8 });
+  }
+  function garmentSwing(g, t) {
+    let a = 0.12 * Math.sin(t * 2.1 + g.z * 1.7);
+    if (t > 8.3) a += 0.9 * Math.exp(-Math.abs(g.z + 3) / 2) * Math.exp(-2.2 * (t - 8.3)) * Math.sin((t - 8.3) * 9);
+    return a;
+  }
+  function drawGarment(g, t) {
+    const a = garmentSwing(g, t), c = Math.cos(a), s = Math.sin(a);
+    const pts = GARMENTS[g.kind].map(([dz, dy]) => { const zz = g.z + dz; return [LAUNDRY.x + dy * s, lineY(zz) - dy * c, zz]; });
+    const sc = poly3(pts); if (!sc) return;
+    const lw = clamp(1.4 + 20 / dist(pts[0], cam.p), 1.4, 4);
+    shape(sc, g.col, { w: lw, hatch: 0.12, hatchAng: 0.8 });
+    if (g.kind === 'towel') { const st = line3([[LAUNDRY.x + .25 * s, lineY(g.z) - .25 * c, g.z - .4], [LAUNDRY.x + .25 * s, lineY(g.z) - .25 * c, g.z + .42]]); for (const l of st) mline(l, { w: 4, col: '#5b86c5', single: true }); }
+    for (const dz of [-0.3, 0.3]) { if (g.kind === 'sock' && dz > 0) continue; const peg = pt3([LAUNDRY.x, lineY(g.z + dz) + 0.05, g.z + dz]); if (peg) mline([[peg[0], peg[1] - 4], [peg[0], peg[1] + 5]], { w: 3, single: true }); }
+  }
+
+  function drawLamppost(t) {
+    const P = [0, 0, -4.9];
+    rod(P, [0, 0.55, -4.9], 0.22, 0.13, K.post, { caps: true, shade: 0.3 });
+    rod([0, 0.55, -4.9], [0, 4.65, -4.9], 0.075, 0.06, K.post, { shade: 0.25 });
+    rod([0, 4.3, -5.58], [0, 4.3, -4.22], 0.028, 0.028, K.post);
+    for (const z of [-5.62, -4.18]) { const s = pt3([0, 4.3, z]); if (s) { const r = Math.max(2, 0.05 * cam.foc / s[2]); dot2(s, r, K.ink); } }
+    rod([0, 4.62, -4.9], [0, 4.72, -4.9], 0.1, 0.1, K.post, { caps: true });
+    rod([0, 4.72, -4.9], [0, 5.35, -4.9], 0.16, 0.22, K.glass, { caps: true });
+    const panes = line3([[0, 4.74, -4.9], [0, 5.33, -4.9]]); for (const l of panes) mline(l, { w: 1.2, single: true });
+    rod([0, 5.35, -4.9], [0, 5.56, -4.9], 0.25, 0.04, K.post, { caps: true });
+    const tip = pt3([0, 5.62, -4.9]); if (tip) dot2(tip, Math.max(2, 0.05 * cam.foc / tip[2]), K.ink);
+  }
+
+  function drawBalloon(t) {
+    const B = balloonAt(t), st = balloonStretch(t);
+    const c = toCam(B); if (c[2] < NEAR + BALLOON_R) return;
+    const sc = toScreen(c), r = BALLOON_R * cam.foc / c[2];
+    const up = pt3(add(B, [0, BALLOON_R, 0]));
+    const ang = up ? Math.atan2(up[0] - sc[0], -(up[1] - sc[1])) : 0;
+    const sx = 1 / Math.sqrt(st), sy = st;
+    const ca = Math.cos(ang), sa = Math.sin(ang);
+    const rotp = (x, y) => [sc[0] + x * ca - y * sa, sc[1] + x * sa + y * ca];
+    const body = [];
+    for (let i = 0; i < 28; i++) {
+      const a = i / 28 * 6.283; let x = Math.cos(a) * r * sx * 0.96, y = Math.sin(a) * r * sy * 1.08;
+      if (y > 0) x *= 1 - 0.2 * (y / (r * sy * 1.08));
+      body.push(rotp(x, y));
+    }
+    // string first, so the knot sits on top of it
+    const knotY = BALLOON_R * 1.08 * st;
+    const knot = add(B, [0, -knotY, 0]);
+    drawString(t, knot);
+    const lw = clamp(2.2 + 26 / c[2], 2, 6.5);
+    mfill(body, K.red, { mis: Math.min(4, r * 0.08), gap: Math.max(6, r * 0.22), ang: 0.9 });
+    const shadow = [];
+    for (let i = 0; i <= 12; i++) { const a = -0.2 + i / 12 * 2.2; shadow.push(rotp(Math.cos(a) * r * sx * 0.96, Math.sin(a) * r * sy * 1.08)); }
+    for (let i = 12; i >= 0; i--) { const a = -0.2 + i / 12 * 2.2; shadow.push(rotp(Math.cos(a) * r * sx * 0.55 - r * 0.1, Math.sin(a) * r * sy * 0.62 + r * 0.05)); }
+    strokesIn(shadow, { ang: ang + 0.8, gap: Math.max(3, r * 0.1), w: Math.max(1, r * 0.035), col: K.redD, a: 0.7 });
+    const hl = []; for (let i = 0; i <= 6; i++) { const a = 3.55 + i * 0.13; hl.push(rotp(Math.cos(a) * r * 0.62, Math.sin(a) * r * 0.66 * sy)); }
+    mline(hl, { w: Math.max(2, r * 0.12), col: K.paper, a: 0.95, single: true, wob: 0.6 });
+    dot2(rotp(-r * 0.2, -r * 0.62 * sy), Math.max(1.2, r * 0.05), K.paper);
+    mline(body, { closed: true, w: lw, wob: Math.min(2.2, 0.8 + r * 0.02) });
+    const k = r * 0.14;
+    const tri = [rotp(-k, r * sy * 1.06), rotp(k, r * sy * 1.06), rotp(0, r * sy * 1.06 + k * 1.3)];
+    shape(tri, K.redD, { w: lw * 0.6, streak: false, mis: 0.5 });
+    // Plympton-style impact lines on the snag
+    const dt = t - CUES.snag;
+    if (dt >= 0 && dt < 0.35) {
+      const s = pt3(SNAG_AT);
+      if (s) for (let i = 0; i < 9; i++) {
+        const a = i / 9 * 6.283 + rnd() * 0.3, r0 = 18 + dt * 60, r1 = r0 + 22 + rnd() * 20;
+        mline([[s[0] + Math.cos(a) * r0, s[1] + Math.sin(a) * r0], [s[0] + Math.cos(a) * r1, s[1] + Math.sin(a) * r1]], { w: 2.4, single: true });
+      }
+    }
+  }
+  function drawString(t, knot) {
+    const pts = [];
+    if (t < CUES.snag) {
+      const v = mul(sub(balloonAt(t + 0.05), balloonAt(t - 0.05)), 10);
+      for (let i = 0; i <= 10; i++) {
+        const s = i / 10;
+        pts.push(add(knot, [-v[0] * 0.3 * s * s + 0.12 * Math.sin(t * 3 + s * 4) * s, -STRING_L * s + Math.abs(v[1]) * 0.1 * s * s, -v[2] * 0.3 * s * s]));
+      }
+    } else {
+      const dt = t - CUES.snag;
+      for (let i = 0; i <= 6; i++) { const s = i / 6; const p = mix3(knot, SNAG_AT, s); p[0] += Math.sin(s * Math.PI) * 0.06 * Math.sin(t * 3); pts.push(p); }
+      const swing = 0.25 * Math.exp(-2 * dt) * Math.sin(dt * 9) + 0.04 * Math.sin(t * 2.5);
+      for (let i = 1; i <= 5; i++) { const s = i / 5; pts.push(add(SNAG_AT, [swing * s * s, -0.85 * s, 0.03 * s])); }
+    }
+    for (const l of line3(pts)) mline(l, { w: clamp(1.2 + 6 / dist(knot, cam.p), 1.2, 3), wob: 0.7, single: true, ov: 0 });
+  }
+
+  function drawPigeon(t) {
+    const g = pigeonAt(t);
+    if (g.flying && dist(g.p, cam.p) < 0.35) return;
+    const [x, y, z] = g.p, s = 1;
+    const c = toCam(g.p); if (c[2] < NEAR + 0.1) return;
+    const lw = clamp(1.6 + 16 / c[2], 1.6, 7);
+    const P = pts => poly3(flat(x, y, z, pts, s));
+    const flip = cam.p[0] > x + 6 ? -1 : 1;
+    const F = pts => P(pts.map(([u, v]) => [u * flip, v]));
+    if (!g.flying) {
+      for (const dx of [-0.02, 0.04]) { const l = line3([[x + dx * flip, y, z], [x + dx * flip, y + 0.07, z]])[0]; if (l) mline(l, { w: lw * 0.7, col: '#c0605a', single: true }); }
+    }
+    const up = g.flying ? ((Math.floor(t * FPS) % 2) ? 1 : -1) : 0;
+    const farWing = g.flying ? F([[-0.02, 0.16], [0.08, 0.16], [0.02, 0.16 + up * 0.26], [-0.14, 0.16 + up * 0.3]]) : null;
+    if (farWing) shape(farWing, K.pigeonD, { w: lw, streak: false });
+    const body = F([[-0.2, 0.12], [-0.12, 0.07], [0.02, 0.06], [0.1, 0.1], [0.13, 0.17], [0.05, 0.21], [-0.08, 0.2], [-0.22, 0.17], [-0.3, 0.16]]);
+    shape(body, K.pigeon, { w: lw, streak: false, hatch: 0.2, hatchGap: 5 });
+    const peck = g.peck * 0.06;
+    const head = F([[0.08, 0.18], [0.14, 0.2 - peck], [0.18, 0.25 - peck], [0.15, 0.29 - peck], [0.1, 0.28 - peck], [0.07, 0.23]]);
+    shape(head, K.pigeonD, { w: lw, streak: false });
+    const neck = F([[0.07, 0.17], [0.13, 0.19 - peck], [0.12, 0.23 - peck], [0.07, 0.21]]);
+    if (neck) mfill(neck, K.neck, { streak: false, mis: 1 });
+    const beak = F([[0.18, 0.265 - peck], [0.23, 0.255 - peck], [0.18, 0.25 - peck]]);
+    if (beak) mline(beak, { closed: true, w: lw * 0.7 });
+    const eye = pt3([x + 0.145 * flip, y + 0.265 - peck, z + 0.01]); if (eye) dot2(eye, Math.max(1.5, lw * 0.55), K.ink);
+    const nearWing = g.flying ? F([[-0.06, 0.17], [0.06, 0.17], [0.0, 0.17 + up * 0.34], [-0.2, 0.17 + up * 0.38]]) : F([[-0.16, 0.18], [0.02, 0.17], [-0.04, 0.12], [-0.24, 0.15]]);
+    shape(nearWing, K.pigeonD, { w: lw, streak: false, hatch: 0.25, hatchGap: 4 });
+    if (g.chirp) {
+      const b = pt3([x + 0.25 * flip, y + 0.3, z]);
+      if (b) for (let i = 0; i < 3; i++) { const a = -0.9 + i * 0.5; mline([[b[0] + Math.cos(a) * 10 * flip, b[1] + Math.sin(a) * 10], [b[0] + Math.cos(a) * 26 * flip, b[1] + Math.sin(a) * 26]], { w: 2.2, single: true }); }
+    }
+    if (g.flying) {
+      const tail = pt3([x - 0.3 * flip, y + 0.15, z - 0.4]);
+      const head2 = pt3([x, y + 0.15, z]);
+      if (tail && head2) for (let i = -1; i <= 1; i++) mline([[tail[0] + i * 8, tail[1] + i * 10], [lerp(tail[0], head2[0], 0.6) + i * 8, lerp(tail[1], head2[1], 0.6) + i * 10]], { w: 1.4, single: true, a: 0.6 });
+    }
+  }
+
+  function drawPascal(t) {
+    const S = pascalAt(t), bx = S.bx, by = S.bob;
+    const lw = z => clamp(2 + 12 / z, 2, 7);
+    const ref = toCam([bx, 0.6, BODY_Z]); if (ref[2] < NEAR) return;
+    const w = lw(ref[2]);
+    const leg = f => {
+      const ft = S.feet[f], z = FOOT_Z[f];
+      const hip = [bx + (f === 'L' ? 0.03 : -0.03), 0.57 + by, z];
+      const ank = [ft.x, 0.075 + ft.lift, z];
+      const dx = ank[0] - hip[0], dy = ank[1] - hip[1], d = Math.min(0.6, Math.hypot(dx, dy));
+      const m = [(hip[0] + ank[0]) / 2, (hip[1] + ank[1]) / 2], k = Math.sqrt(Math.max(0, 0.09 - (d / 2) ** 2));
+      const knee = [m[0] + (-dy / (Math.hypot(dx, dy) || 1)) * -k, m[1] + (dx / (Math.hypot(dx, dy) || 1)) * -k, z];
+      if (knee[0] < m[0]) { knee[0] = 2 * m[0] - knee[0]; knee[1] = 2 * m[1] - knee[1]; }
+      rod(hip, knee, 0.05, 0.045, K.skin, { w });
+      rod(knee, ank, 0.045, 0.04, K.sock, { w });
+      const c = Math.cos(-ft.tilt), s = Math.sin(-ft.tilt);
+      const prof = [[-0.075, 0], [-0.08, 0.05], [-0.035, 0.085], [0.05, 0.075], [0.125, 0.05], [0.15, 0.022], [0.14, 0]].map(([u, v]) => [u * 1.1, v * 1.1]);
+      const shoe = poly3(prof.map(([u, v]) => [ft.x + u * c - v * s, ft.lift + u * s + v * c, z + 0.001]));
+      if (shoe) {
+        shape(shoe, K.shoe, { w, streak: false, mis: 1.5 });
+        const lace = line3([[ft.x + 0.0, ft.lift + 0.085, z], [ft.x + 0.06, ft.lift + 0.07, z]])[0];
+        if (lace) mline(lace, { w: Math.max(1.2, w * 0.4), col: K.paper, single: true });
+        const hl = line3([[ft.x + 0.07, ft.lift + 0.065, z], [ft.x + 0.13, ft.lift + 0.04, z]])[0];
+        if (hl) mline(hl, { w: Math.max(1.2, w * 0.5), col: '#8b8189', single: true });
+      }
+    };
+    const arm = (near) => {
+      const z = near ? -5.2 : -5.6;
+      const sh = [bx + 0.0, 0.98 + by, z];
+      const sw = clamp(near ? S.swing : -S.swing, -1, 1) * 0.5;
+      const el = [sh[0] + Math.sin(sw) * 0.18, sh[1] - Math.cos(sw) * 0.18, z];
+      const hd = [el[0] + Math.sin(sw * 1.3 + 0.15) * 0.17, el[1] - Math.cos(sw * 1.3 + 0.15) * 0.17, z];
+      rod(sh, el, 0.055, 0.05, K.coat, { w }); rod(el, hd, 0.05, 0.045, K.coat, { w });
+      const h = pt3(hd); if (h) { const r = 0.04 * cam.foc / h[2]; shape(circlePts(h[0], h[1], r, r, 10), K.skin, { w: w * 0.8, streak: false, mis: 0.5 }); }
+    };
+    arm(false);
+    leg('R'); leg('L');
+    const Z = BODY_Z;
+    shape(poly3(flat(bx, by, Z, [[-0.11, 0.6], [0.11, 0.6], [0.1, 0.5], [-0.1, 0.5]])), K.shorts, { w, streak: false });
+    const coat = poly3(flat(bx, by, Z, [[-0.1, 1.02], [0.09, 1.02], [0.13, 0.8], [0.16, 0.57], [0.02, 0.55], [-0.15, 0.57], [-0.12, 0.8]]));
+    shape(coat, K.coat, { w, hatch: 0.25, hatchGap: 6 });
+    for (const v of [0.92, 0.8, 0.68]) { const b = pt3([bx + 0.085, v + by, Z]); if (b) dot2(b, Math.max(1.4, 0.012 * cam.foc / b[2]), K.ink); }
+    const strap = line3([[bx + 0.08, 1.0 + by, Z + 0.1], [bx - 0.05, 0.8 + by, Z + 0.1], [bx - 0.16, 0.72 + by, Z + 0.1]])[0];
+    if (strap) mline(strap, { w: w * 1.1, col: K.satchel });
+    shape(poly3(flat(bx, by, Z + 0.12, [[-0.26, 0.78], [-0.1, 0.78], [-0.1, 0.62], [-0.26, 0.62]])), K.satchel, { w, streak: false, hatch: 0.2 });
+    // head, tipping back to look up
+    const tilt = S.look * 0.85;
+    const hc = [bx + 0.03 - tilt * 0.03, 1.15 + by, Z + 0.05];
+    const hs = pt3(hc); if (!hs) return;
+    const r = 0.125 * cam.foc / hs[2];
+    const ct = Math.cos(tilt), st = Math.sin(tilt);
+    const hp = (u, v) => [hs[0] + (u * ct + v * st) * r, hs[1] + (-u * st + v * ct) * r]; // head-local (u fwd, v down)
+    rod([bx + 0.01, 1.0 + by, Z + 0.05], [hc[0] - 0.01, hc[1] - 0.08, Z + 0.05], 0.035, 0.035, K.skin, { w: w * 0.8 });
+    const headPts = circlePts(0, 0, 1, 1.05, 20).map(([u, v]) => hp(u, v));
+    shape(headPts, K.skin, { w, streak: false, mis: 1 });
+    const hair = []; for (let i = 0; i <= 10; i++) { const a = Math.PI + 0.1 + i / 10 * 1.9; hair.push(hp(Math.cos(a) * 1.08, Math.sin(a) * 1.1)); }
+    hair.push(hp(0.25, -0.55), hp(-0.2, -0.35), hp(-0.55, 0.05));
+    shape(hair, K.hair, { w, streak: false, hatch: 0.3, hatchGap: 3, mis: 1 });
+    mline([hp(0.55, 0.15), hp(0.62, -0.15)].concat([hp(0.4, -0.3)]), { w: w * 0.5, single: true, a: 0.7 });
+    dot2(hp(0.55, -0.12), Math.max(1.5, r * 0.09), K.ink);
+    mline([hp(0.92, -0.08), hp(1.12, 0.12), hp(0.93, 0.22)], { w: w * 0.8, single: true });
+    if (S.look > 0.5) shape(circlePts(...hp(0.7, 0.55), r * 0.1, r * 0.13, 8), '#8a3a34', { w: w * 0.6, streak: false, mis: 0 });
+    else mline([hp(0.6, 0.55), hp(0.82, 0.5)], { w: w * 0.6, single: true });
+    mline([hp(-0.15, 0.1), hp(-0.05, 0.25), hp(-0.15, 0.35)], { w: w * 0.6, single: true });
+    dot2(hp(0.35, 0.35), Math.max(2, r * 0.14), 'rgba(229, 38, 47, .25)');
+  }
+
+  /* =====================================================================
+     Compose one drawing
+     ===================================================================== */
+  let grain = null;
+  function makeGrain() {
+    const g = document.createElement('canvas'); g.width = W; g.height = H;
+    const c = g.getContext('2d'), r = mulberry(7);
+    c.fillStyle = '#fff'; c.fillRect(0, 0, W, H);
+    for (let i = 0; i < 9000; i++) { c.fillStyle = `rgba(90, 80, 70, ${0.04 + r() * 0.08})`; c.fillRect(r() * W, r() * H, 1 + r() * 1.5, 1 + r()); }
+    c.strokeStyle = 'rgba(120, 110, 95, .07)'; c.lineWidth = 1;
+    for (let i = 0; i < 260; i++) { const x = r() * W, y = r() * H, a = r() * 6.283, l = 4 + r() * 14; c.beginPath(); c.moveTo(x, y); c.lineTo(x + Math.cos(a) * l, y + Math.sin(a) * l); c.stroke(); }
+    return g;
+  }
+  function speedLines(t) {
+    const a = camPos(t - 0.1), b = camPos(t + 0.1), v = dist(a, b) / 0.2;
+    const n = Math.floor(clamp((v - 6.5) * 3, 0, 16));
+    for (let i = 0; i < n; i++) {
+      const side = rnd() < 0.5 ? -1 : 1, y = rnd() * H, x = side < 0 ? rnd() * 140 : W - rnd() * 140;
+      const dx = W / 2 - x, dy = H / 2 - y, l = Math.hypot(dx, dy), len = 60 + rnd() * 160;
+      mline([[x, y], [x + dx / l * len, y + dy / l * len]], { w: 1.4, single: true, a: 0.45, col: K.inkSoft });
+    }
+  }
+
+  function draw(frame) {
+    const t = frame / FPS;
+    rnd = mulberry(frame * 7919 + 13);
+    setCamera(t);
+    ctx.setTransform(1, 0, 0, 1, (rnd() - 0.5) * 2.4, (rnd() - 0.5) * 2.4); // the sheet never sits in quite the same place on the pegs
+    ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+    drawSky(t);
+    drawGround(t);
+    // From down in the street no building can hide anything else in the street,
+    // so the street's things go on after the whole city.
+    const inStreet = cam.p[1] < 19 && Math.abs(cam.p[2]) < 7;
+    const items = [];
+    const push = (d, fn) => items.push({ d, fn, layer: 0 });
+    const pushStreet = (d, fn) => items.push({ d, fn, layer: inStreet ? 1 : 0 });
+    push(dist([150, 150, -340], cam.p), () => drawEiffel());
+    for (const c of clouds) push(dist(c.p, cam.p) - c.r * 0.5, () => drawCloud(c, t));
+    for (const b of buildings) {
+      const d = distToBox(b);
+      if (b.detail < 2 && d > 180) continue;
+      push(d, () => drawBuilding(b, t));
+      for (const ch of b.chimneys) {
+        push(Math.hypot(Math.max(ch.x - cam.p[0], 0, cam.p[0] - ch.x - ch.w), Math.max(ch.y - 0.5 - cam.p[1], 0, cam.p[1] - ch.y - ch.hh), Math.max(ch.z - cam.p[2], 0, cam.p[2] - ch.z - ch.d)), () => drawChimney(ch, t));
+        if (ch.smoke) for (const p of smokePuffs(ch, t)) push(dist(p.p, cam.p), () => drawSmoke(p));
+      }
+    }
+    pushStreet(dist([LAUNDRY.x, 12, 0], cam.p) + 3, () => drawLaundryLine(t));
+    for (const g of laundry) pushStreet(dist([LAUNDRY.x, lineY(g.z) - 0.4, g.z], cam.p), () => drawGarment(g, t));
+    const nearPost = Math.hypot(cam.p[0], Math.max(0, cam.p[1] - 5.5, -cam.p[1]), cam.p[2] + 4.9);
+    pushStreet(nearPost, () => drawLamppost(t));
+    pushStreet(dist(pigeonAt(t).p, cam.p) - 0.3, () => drawPigeon(t));
+    pushStreet(dist(balloonAt(t), cam.p) - BALLOON_R, () => drawBalloon(t));
+    if (t >= 15.8) pushStreet(dist([pascalAt(t).bx, 0.6, BODY_Z], cam.p) - 0.3, () => drawPascal(t));
+    items.sort((a, b) => a.layer - b.layer || b.d - a.d);
+    for (const it of items) it.fn();
+    speedLines(t);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.globalCompositeOperation = 'multiply'; ctx.globalAlpha = 0.9;
+    ctx.drawImage(grain ||= makeGrain(), 0, 0);
+    ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+  }
+
+  /* =====================================================================
+     Player: the waltz is rendered once, and while it plays the audio clock
+     drives the picture so the cues land on the drawings.
+     ===================================================================== */
+  const playBtn = document.getElementById('play'), restartBtn = document.getElementById('restart');
+  const scrub = document.getElementById('scrub'), clock = document.getElementById('clock');
+  const beatList = document.getElementById('beats');
+  const fmt = s => `${Math.floor(s / 60)}:${(s % 60).toFixed(1).padStart(4, '0')}`;
+  const fmtRange = (a, b) => `${fmt(a).replace(/\.0$/, '')}–${fmt(b).replace(/\.0$/, '')}`;
+  beatList.innerHTML = BEATS.map((b, i) => `<li class="beat" data-i="${i}"><button type="button" data-t="${b.t}"><span class="t">${fmtRange(b.t, b.end)}</span><span class="d"><b>${b.name}.</b>${b.text}${b.cue ? ` <span class="cue">♪ ${b.cue}</span>` : ''}<span class="cam">${b.cam}</span></span></button></li>`).join('');
+
+  let playing = false, frame = 0, lastDrawn = -1, startAt = 0, startFrame = 0;
+  const listeners = new Set();
+  function show(n) {
+    frame = clamp(n, 0, FRAMES - 1);
+    if (frame !== lastDrawn) { draw(frame); lastDrawn = frame; }
+    scrub.value = frame;
+    const t = frame / FPS;
+    clock.textContent = `${fmt(t)} / 0:20`;
+    beatList.querySelectorAll('.beat').forEach((li, i) => li.classList.toggle('now', t >= BEATS[i].t && t < BEATS[i].end));
+    listeners.forEach(fn => { try { fn(t, frame); } catch (e) { /* listener errors stay out of the player */ } });
+  }
+
+  const soundBtn = document.getElementById('sound');
+  const sound = { on: !!THEME, ctx: null, buffer: null, rendering: null, src: null, ctxStart: 0 };
+  if (!THEME) soundBtn.hidden = true;
+  const renderMusic = () => sound.rendering ||= THEME.render(DURATION).then(b => (sound.buffer = b)).catch(e => { console.warn('music failed', e); sound.on = false; soundBtn.hidden = true; });
+  function startSound(fromSec) {
+    if (!sound.on || !sound.buffer) return false;
+    try {
+      sound.ctx ||= new (window.AudioContext || window.webkitAudioContext)();
+      if (sound.ctx.state === 'suspended') sound.ctx.resume();
+      const src = sound.ctx.createBufferSource();
+      src.buffer = sound.buffer;
+      src.connect(sound.ctx.destination);
+      sound.ctxStart = sound.ctx.currentTime + 0.06;
+      src.start(sound.ctxStart, fromSec);
+      sound.src = src;
+      return true;
+    } catch (e) { console.warn('sound failed', e); return false; }
+  }
+  function stopSound() { if (sound.src) { try { sound.src.stop(); } catch (e) { /* already stopped */ } sound.src = null; } }
+  const latency = () => sound.ctx ? (sound.ctx.outputLatency || sound.ctx.baseLatency || 0) : 0;
+
+  function tick(now) {
+    if (!playing) return;
+    const elapsed = sound.src ? Math.max(0, sound.ctx.currentTime - sound.ctxStart - latency()) : (now - startAt) / 1000;
+    const n = startFrame + Math.floor(elapsed * FPS);
+    if (n >= FRAMES - 1) {
+      show(FRAMES - 1);
+      sound.src = null; // let the last chord ring out
+      playing = false;
+      playBtn.textContent = 'Play again';
+      return;
+    }
+    show(n);
+    requestAnimationFrame(tick);
+  }
+  async function play() {
+    if (playing) return;
+    if (frame >= FRAMES - 1) show(0);
+    playing = true;
+    playBtn.textContent = 'Pause';
+    if (sound.on && !sound.buffer) { playBtn.textContent = 'Tuning up…'; await renderMusic(); if (!playing) return; playBtn.textContent = 'Pause'; }
+    startFrame = frame; startAt = performance.now();
+    startSound(frame / FPS);
+    requestAnimationFrame(tick);
+  }
+  function pause() { playing = false; stopSound(); playBtn.textContent = 'Play'; }
+  function seek(sec, keepPlaying = playing) {
+    pause();
+    show(Math.round(sec * FPS));
+    if (keepPlaying) play();
+  }
+  soundBtn.addEventListener('click', () => {
+    sound.on = !sound.on;
+    soundBtn.setAttribute('aria-pressed', String(sound.on));
+    soundBtn.textContent = sound.on ? 'Sound on' : 'Sound off';
+    if (playing) seek(frame / FPS, true);
+  });
+  playBtn.addEventListener('click', () => playing ? pause() : play());
+  cv.addEventListener('click', () => playing ? pause() : play());
+  restartBtn.addEventListener('click', () => seek(0, true));
+  scrub.addEventListener('input', () => seek(+scrub.value / FPS, false));
+  beatList.addEventListener('click', e => { const b = e.target.closest('button[data-t]'); if (b) seek(+b.dataset.t, true); });
+  document.addEventListener('keydown', e => {
+    if (e.target.closest('input, button')) return;
+    if (e.code === 'Space') { e.preventDefault(); playing ? pause() : play(); }
+  });
+
+  window.plymptonScene = { duration: DURATION, fps: FPS, beats: BEATS, cues: CUES, play, pause, seek, get time() { return frame / FPS; }, get playing() { return playing; }, onFrame: fn => (listeners.add(fn), () => listeners.delete(fn)) };
+
+  const m = /^#t(\d+(?:\.\d+)?)$/.exec(location.hash);
+  const reduced = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  show(Math.round((m ? +m[1] : reduced ? 19.9 : 0) * FPS));
+  if (THEME) renderMusic();
+})();
+</script>
