@@ -1,7 +1,9 @@
 // Embed mode for the opening pages, used by opening-gallery.html.
 //
-// Each opening loads this in its <head>. It does nothing unless the page's URL
-// has ?embed, so the pages behave exactly as before when opened on their own.
+// Each opening loads this in its <head>. It does nothing unless the page sits in a
+// frame named "red-balloon-embed" (or its URL has ?embed or #embed), so the pages
+// behave exactly as before when opened on their own. The frame name is what the
+// gallery uses: it survives hosts that rewrite or drop a frame's query string.
 // In embed mode it:
 //   - shows only the picture (no header, controls, shot list or corner tape),
 //   - keeps the page silent (the gallery plays the one waltz for everyone),
@@ -11,7 +13,8 @@
 // can't reach into its frames (a sandboxed host gives each frame its own origin).
 (function () {
   'use strict';
-  if (!/[?&]embed\b/.test(location.search) || window.parent === window) return;
+  const named = window.name === 'red-balloon-embed';
+  if (window.parent === window || !(named || /[?&#]embed\b/.test(location.search + location.hash))) return;
 
   const root = document.documentElement;
   root.classList.add('embed');

@@ -171,15 +171,15 @@
   /* ---- build the six frames ---- */
   const items = OPENINGS.map((o, i) => {
     const fig = document.createElement('figure');
-    fig.innerHTML = `<figcaption><span class="n">${i + 1}</span><h2>${o.name}</h2><a href="${o.file}" target="_blank" rel="noopener">Open on its own</a><p>${o.text}</p></figcaption><div class="frame"><iframe title="${o.name} opening"></iframe><span class="wait">Loading…</span></div>`;
+    fig.innerHTML = `<figcaption><span class="n">${i + 1}</span><h2>${o.name}</h2><a href="${o.file}" target="_blank" rel="noopener">Open on its own</a><p>${o.text}</p></figcaption><div class="frame"><iframe name="red-balloon-embed" title="${o.name} opening"></iframe><span class="wait">Loading…</span></div>`;
     $('list').appendChild(fig);
     const iframe = fig.querySelector('iframe');
-    const item = { iframe, src: `${o.file}?embed`, fig, hello: false, ready: false, visible: true, sent: -1 };
+    const item = { iframe, src: o.file, fig, hello: false, ready: false, visible: true, sent: -1 };
     fig.querySelector('.frame').addEventListener('click', () => playing ? pause() : play());
     return item;
   });
 
-  // Each opening runs in embed mode (opening-embed.js): it trims itself down to the picture and
+  // Each opening runs in embed mode (opening-embed.js, switched on by the frame's name): it trims itself down to the picture and
   // talks to this page by message, since a sandboxed host won't let the gallery reach into its frames.
   window.addEventListener('message', e => {
     const d = e.data;
@@ -202,6 +202,8 @@
     if (next >= items.length) return;
     const it = items[next++];
     it.iframe.src = it.src;
+    // if a page never checks in, show it as it is rather than a placeholder forever
+    setTimeout(() => { if (!it.hello) { it.iframe.classList.add('on'); it.fig.classList.add('on'); } }, 15000);
     nextTimer = setTimeout(loadNext, 4000); // don't let one slow page hold up the rest
   }
   loadNext();
