@@ -90,6 +90,7 @@
     box-shadow: 2px 3px 0 rgba(55, 48, 44, .35);
   }
   .btn.primary { background: var(--balloon); color: var(--paper); border-color: #6e0d09; min-width: 6.2em; }
+  .btn[aria-pressed="false"] { opacity: .7; text-decoration: line-through; }
   .btn:active { transform: translate(1px, 2px); box-shadow: 1px 1px 0 rgba(55, 48, 44, .35); }
   .btn:focus-visible, .scrub:focus-visible, .beat button:focus-visible { outline: 3px solid var(--pencil); outline-offset: 3px; }
   .scrub { flex: 1 1 220px; min-width: 0; accent-color: var(--balloon); height: 28px; }
@@ -131,7 +132,7 @@
   <header>
     <p class="eyebrow">The Red Balloon · Scene 1 · 20 seconds</p>
     <h1>The <span class="red">balloon</span> drifts over Paris</h1>
-    <p class="lede">A red balloon floats alone over torn-paper rooftops, dips past the laundry and a pigeon, snags on a lamppost, and waits for Pascal. Shot at 12 drawings a second, like hand-moved paper.</p>
+    <p class="lede">A red balloon floats alone over torn-paper rooftops, dips past the laundry and a pigeon, snags on a lamppost, and waits for Pascal. Shot at 12 drawings a second, like hand-moved paper, to a little accordion waltz.</p>
   </header>
 
   <div class="screen">
@@ -144,17 +145,19 @@
   <div class="controls">
     <button class="btn primary" id="play" type="button">Play</button>
     <button class="btn" id="restart" type="button">From the top</button>
+    <button class="btn" id="sound" type="button" aria-pressed="true">Sound on</button>
     <input class="scrub" id="scrub" type="range" min="0" max="239" step="1" value="0" aria-label="Scrub through the 240 frames">
     <span class="clock" id="clock">0:00.0 / 0:20</span>
   </div>
 
   <section class="sheet" aria-labelledby="beat-title">
     <h2 id="beat-title">Beat sheet</h2>
-    <p class="meta">20 seconds, 240 frames at 12 fps. Red notes mark the music cues. Tap a beat to jump to it.</p>
+    <p class="meta">20 seconds, 240 frames at 12 fps, over 12 bars of waltz. Red notes mark where a sound and a movement land together. Tap a beat to jump to it.</p>
     <ol class="beats" id="beats"></ol>
   </section>
 </div>
 
+<script src="music/opening-theme.js"></script>
 <script>
 (() => {
   /* =====================================================================
@@ -165,11 +168,20 @@
     { t: 0, end: 3, name: 'Sky', text: 'The balloon drifts in alone through tissue-paper clouds.' },
     { t: 3, end: 7, name: 'Rooftops', text: 'The camera eases down as it floats over zinc roofs and smoking chimney pots.' },
     { t: 7, end: 10, name: 'Laundry', text: 'It dips between two buildings and brushes a flapping laundry line.' },
-    { t: 10, end: 12.5, name: 'Pigeon', text: 'It passes a pigeon on a balcony rail, and the pigeon flaps off.', cue: 'cue 0:10' },
-    { t: 12.5, end: 16, name: 'Snag', text: 'It sinks to the street, the string snags on the lamppost arm, and it bobs to a stop.', cue: 'cue 0:14' },
-    { t: 16, end: 20, name: 'Shoes', text: "The camera tilts down the post to the cobbles. Pascal's shoes step in and stop. Hold.", cue: 'cue 0:17' },
+    { t: 10, end: 12.5, name: 'Pigeon', text: 'It passes a pigeon on a balcony rail. The pigeon chirps, then flaps off.', cue: 'chirp 0:10, wings 0:10.6' },
+    { t: 12.5, end: 16, name: 'Snag', text: 'It sinks to the street, the string snags on the lamppost arm, and it bobs to a stop.', cue: 'plink 0:13.9' },
+    { t: 16, end: 20, name: 'Shoes', text: "The camera tilts down the post to the cobbles and Pascal's shoes step in on the beat. It pulls back to show him looking up at the balloon.", cue: 'four steps from 0:16.7' },
   ];
-  const CUES = { pigeon: 10.1, snag: 14.0, footsteps: 17.0 };
+  /* Sync points come from the waltz in music/opening-theme.js (12 bars of 3/4
+     across 20 s, so one beat is 5/9 s). The fallbacks are the same numbers. */
+  const THEME = window.OpeningTheme;
+  const MUSIC_BEAT = DURATION / 36;
+  const CUES = {
+    pigeon: THEME ? THEME.cueTime('pigeon', DURATION) : 10,          // two chirps: the pigeon hops
+    flap: (THEME ? THEME.cueTime('pigeon', DURATION) : 10) + MUSIC_BEAT, // wing flaps: it takes off
+    snag: THEME ? THEME.cueTime('snag', DURATION) : 25 * MUSIC_BEAT,  // the plink
+    steps: THEME && THEME.stepTimes ? THEME.stepTimes(DURATION) : [30, 31, 32, 33].map(b => b * MUSIC_BEAT),
+  };
 
   /* =====================================================================
      Paper-piece toolkit, carried over from storyboard.html
@@ -424,7 +436,7 @@
   {
     seed(504);
     const s = building(1330, GY, 230, 250, '#d8c29a', { lit: .1, shutter: '#6d5a7a', cols: 6 }) + building(1560, GY, 130, 236, '#e9dcc0', { lit: .1 });
-    glued('bldC', s, [[[1322, 615, 380, 225], 1.7], [[1322, 840, 380, 70], 3.2]]);
+    glued('bldC', s, [[[1322, 615, 380, 226], 1.7], [[1322, 840, 380, 70], 3.2]]);
   }
   /* ---- cobbles ---- */
   {
@@ -437,9 +449,9 @@
       arcs.push([[xx, y], [xx + 5, y - 2.8], [xx + 11, y]]);
     }
     s += pens(arcs, '#8a7a5a', .8, { single: true });
-    glued('street', s, [[[1240, 888, 350, 84], 3.4]]);
+    glued('street', s, [[[1080, 888, 680, 84], 1.2], [[1240, 888, 350, 84], 3.4]]);
   }
-  glued('lamp', (seed(506), lamp(LAMP.x, GY, LAMP.h, LAMP.bar)), [[[1370, 695, 60, 105], 1.9], [[1380, 800, 40, 106], 3.4]]);
+  glued('lamp', (seed(506), lamp(LAMP.x, GY, LAMP.h, LAMP.bar)), [[[1370, 695, 60, 106], 1.9], [[1380, 800, 40, 106], 3.4]]);
 
   /* ---- actors ---- */
   piece('balloon', [-26, -26, 52, 56], 1.8, 3, () => balloonPiece(BR));
@@ -497,6 +509,20 @@
   piece('legFar', [-6, -4, 12, 38], 3.8, 2, () => leg(true));
   piece('shoe', [-7, -9, 20, 12], 3.8, 2, () => shoe());
   piece('hem', [-21, -38, 36, 45], 3.8, 2, () => hem());
+  // his head, from the storyboard's person() at 1.3x, hinged at the neck so he can look up
+  const head = up => {
+    const H = ([x, y]) => [x * 1.3, (y + 57) * 1.3 - 13];
+    const eyeY = up ? -59.6 : -58.5;
+    return paper(poly([[-7.5, 1.5], [7.5, 1.5], [5.5, -3], [-5.5, -3]], .2), C.coatD, { rim: false }) +
+      paper(ell(0, -13, 10.4, 11.2, 16, .3), C.skin) +
+      paper(poly([[-8.6, -57], [-8, -63], [-3, -66.5], [3, -66.5], [8, -63], [8.6, -59], [4, -61.8], [-1, -61.3], [-5, -60]].map(H), .3), '#5b3a22', { rim: false }) +
+      [[2.8, eyeY], [6.4, eyeY]].map(H).map(([x, y]) => `<circle cx="${f(x)}" cy="${f(y)}" r="1.3" fill="${C.ink}"/>`).join('') +
+      `<circle cx="${f(H([6, -54.5])[0])}" cy="${f(H([6, -54.5])[1])}" r="2.3" fill="${C.blush}" opacity=".45"/>` +
+      (up ? `<circle cx="${f(H([4.5, -52.6])[0])}" cy="${f(H([4.5, -52.6])[1])}" r="1.7" fill="none" stroke="${C.ink}" stroke-width=".9"/>`
+          : pen([H([2.2, -53.8]), H([4.4, -52]), H([6.6, -53.8])], C.ink, 1, { single: true }));
+  };
+  piece('head', [-15, -30, 30, 35], 3.2, 2, () => head(false));
+  piece('headUp', [-15, -30, 30, 35], 3.2, 2, () => head(true));
 
   /* grain lives on the lens, and flickers like film */
   const grainJobs = [0, 1, 2].map(v => ({
@@ -534,13 +560,15 @@
   const CAM = pchip([
     [0, 170, 450, 0], [3, 450, 500, 0], [5, 660, 590, 0], [7, 860, 650, Math.log(1.05)],
     [8.5, 1010, 690, Math.log(1.1)], [10, 1110, 712, Math.log(1.15)], [11.2, 1190, 726, Math.log(1.2)],
-    [12.5, 1290, 730, Math.log(1.25)], [14, 1405, 740, Math.log(1.45)], [16, 1418, 752, Math.log(1.6)],
-    [17.6, 1394, 884, Math.log(3.3)], [18.6, 1392, 888, Math.log(3.6)], [20, 1392, 888, Math.log(3.6)],
+    [12.5, 1290, 730, Math.log(1.25)], [14, 1405, 740, Math.log(1.45)], [15.8, 1418, 752, Math.log(1.6)],
+    [17.1, 1384, 884, Math.log(3.3)], [18.45, 1382, 888, Math.log(3.6)],
+    // then pull back to show all of Pascal looking up at the balloon on the lamppost
+    [19.7, 1398, 806, Math.log(.98)], [20, 1398, 806, Math.log(.98)],
   ]);
   const BALLOON_PATH = pchip([
     [0, -20, 430], [1.5, 170, 445], [3, 420, 470], [5, 650, 575], [6.2, 780, 604], [7, 880, 630],
     [8.5, 1045, 684], [9.4, 1098, 698], [10.2, 1150, 712], [11.2, 1212, 716], [12.5, 1315, 710],
-    [13.4, 1388, 694], [14, 1424, 708],
+    [13.3, 1388, 694], [CUES.snag, 1424, 708],
   ]);
   const SNAG = CUES.snag, REST = [1440, 714];
   const ease = u => u * u * (3 - 2 * u);
@@ -560,10 +588,11 @@
 
   /* Pascal's walk: each step plants one foot 13 units ahead of the other */
   const STEP_DUR = .33;
-  const STEPS = [['n', 1326, 17.0], ['f', 1339, 17.35], ['n', 1352, 17.7], ['f', 1365, 18.05], ['n', 1378, 18.4], ['f', 1382, 18.75]];
+  // each shoe lands on a footstep in the music; the last step closes the feet together
+  const STEPS = [['n', 1340], ['f', 1353], ['n', 1366], ['f', 1370]].map(([ft, to], i) => [ft, to, CUES.steps[i] - STEP_DUR]);
   const LEG = 30;
   function walk(t) {
-    const pos = { n: 1300, f: 1313 }, lift = { n: 0, f: 0 }, tip = { n: 0, f: 0 };
+    const pos = { n: 1314, f: 1327 }, lift = { n: 0, f: 0 }, tip = { n: 0, f: 0 };
     let swing = null;
     for (const [ft, to, t0] of STEPS) {
       if (t >= t0 + STEP_DUR) pos[ft] = to;
@@ -665,8 +694,9 @@
     });
 
     // pigeon
-    const pt = t - CUES.pigeon;
-    if (pt < 0) put(S.pigeonSit, boil, PIGEON[0] + noise(boil, 5) * .3, PIGEON[1]);
+    const pt = t - CUES.flap;
+    if (t < CUES.pigeon) put(S.pigeonSit, boil, PIGEON[0] + noise(boil, 5) * .3, PIGEON[1]);
+    else if (pt < 0) put(t - CUES.pigeon < .17 ? S.pigeonUp : S.pigeonSit, boil, PIGEON[0], PIGEON[1] - (t - CUES.pigeon < .17 ? 2.5 : 0));
     else if (pt < 1.8) {
       const dx = 70 * pt + 40 * pt * pt, dy = -8 * Math.min(pt * 6, 1) - 46 * pt;
       put(n % 2 ? S.pigeonUp : S.pigeonDown, 0, PIGEON[0] + dx, PIGEON[1] + dy, { sx: -1, rot: -.15 });
@@ -705,7 +735,7 @@
     put(S.balloon, boil, bx + noise(n, 1) * .25, by + noise(n, 2) * .25, { rot });
 
     // Pascal's shoes
-    if (t >= CUES.footsteps - .2) {
+    if (t >= CUES.steps[0] - STEP_DUR - .2) {
       const w = walk(t);
       view();
       ctx.fillStyle = 'rgba(58, 40, 22, .22)';
@@ -719,6 +749,8 @@
         put(S.shoe, boil + (k === 'f' ? 1 : 0), l.foot[0], l.foot[1], { rot: l.rot });
       }
       put(S.hem, boil, w.hx + noise(boil, 9) * .15, w.hy);
+      const up = t > CUES.steps[3] + .35;   // after the last step he looks up at the balloon
+      put(up ? S.headUp : S.head, boil, w.hx + 1, w.hy - 34, { rot: up ? -.24 : 0 });
     }
 
     // film grain
@@ -774,26 +806,66 @@
     beatList.querySelectorAll('.beat').forEach((li, i) => li.classList.toggle('now', t >= BEATS[i].t && t < BEATS[i].end));
     listeners.forEach(fn => { try { fn(frame / FPS, frame); } catch (e) { /* listener errors stay out of the player */ } });
   }
+
+  /* Sound: the waltz is rendered once to a buffer, so it can start from any
+     frame. While it plays, the audio clock drives the picture. */
+  const soundBtn = document.getElementById('sound');
+  const sound = { on: !!THEME, ctx: null, buffer: null, rendering: null, src: null, ctxStart: 0 };
+  if (!THEME) soundBtn.hidden = true;
+  const renderMusic = () => sound.rendering ||= THEME.render(DURATION).then(b => (sound.buffer = b)).catch(e => { console.warn('music failed', e); sound.on = false; soundBtn.hidden = true; });
+  function startSound(fromSec) {
+    if (!sound.on || !sound.buffer) return false;
+    try {
+      sound.ctx ||= new (window.AudioContext || window.webkitAudioContext)();
+      if (sound.ctx.state === 'suspended') sound.ctx.resume();
+      const src = sound.ctx.createBufferSource();
+      src.buffer = sound.buffer;
+      src.connect(sound.ctx.destination);
+      sound.ctxStart = sound.ctx.currentTime + .06;
+      src.start(sound.ctxStart, fromSec);
+      sound.src = src;
+      return true;
+    } catch (e) { console.warn('sound failed', e); return false; }
+  }
+  function stopSound() { if (sound.src) { try { sound.src.stop(); } catch (e) { /* already stopped */ } sound.src = null; } }
+  const latency = () => sound.ctx ? (sound.ctx.outputLatency || sound.ctx.baseLatency || 0) : 0;
+
   function tick(now) {
     if (!playing) return;
-    const n = startFrame + Math.floor((now - startAt) / 1000 * FPS);
-    if (n >= FRAMES - 1) { show(FRAMES - 1); pause(); playBtn.textContent = 'Play again'; return; }
+    const elapsed = sound.src ? Math.max(0, sound.ctx.currentTime - sound.ctxStart - latency()) : (now - startAt) / 1000;
+    const n = startFrame + Math.floor(elapsed * FPS);
+    if (n >= FRAMES - 1) {
+      show(FRAMES - 1);
+      sound.src = null;          // let the last chord ring out
+      playing = false;
+      playBtn.textContent = 'Play again';
+      return;
+    }
     show(n);
     requestAnimationFrame(tick);
   }
-  function play() {
+  async function play() {
     if (!ready || playing) return;
-    if (frame >= FRAMES - 1) frame = 0;
-    playing = true; startFrame = frame; startAt = performance.now();
+    if (frame >= FRAMES - 1) show(0);
+    playing = true;
     playBtn.textContent = 'Pause';
+    if (sound.on && !sound.buffer) { playBtn.textContent = 'Tuning up…'; await renderMusic(); if (!playing) return; playBtn.textContent = 'Pause'; }
+    startFrame = frame; startAt = performance.now();
+    startSound(frame / FPS);
     requestAnimationFrame(tick);
   }
-  function pause() { playing = false; playBtn.textContent = 'Play'; }
+  function pause() { playing = false; stopSound(); playBtn.textContent = 'Play'; }
   function seek(sec, keepPlaying = playing) {
     pause();
     show(Math.round(sec * FPS));
     if (keepPlaying) play();
   }
+  soundBtn.addEventListener('click', () => {
+    sound.on = !sound.on;
+    soundBtn.setAttribute('aria-pressed', String(sound.on));
+    soundBtn.textContent = sound.on ? 'Sound on' : 'Sound off';
+    if (playing) seek(frame / FPS, true);
+  });
 
   playBtn.addEventListener('click', () => playing ? pause() : play());
   cv.addEventListener('click', () => playing ? pause() : play());
@@ -806,7 +878,7 @@
   });
   window.addEventListener('resize', () => { fit(); if (ready) show(frame); });
 
-  // for the music thread: the scene's clock, beats and cues
+  // the scene's clock, beats and music cues, for anything else that needs to follow it
   window.openingScene = { duration: DURATION, fps: FPS, beats: BEATS, cues: CUES, play, pause, seek, get time() { return frame / FPS; }, get playing() { return playing; }, onFrame: fn => (listeners.add(fn), () => listeners.delete(fn)) };
 
   fit();
@@ -816,8 +888,8 @@
     const m = /^#t(\d+(?:\.\d+)?)$/.exec(location.hash);
     const reduced = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (m) show(Math.round(+m[1] * FPS));
-    else if (reduced) show(Math.round(14.8 * FPS));
-    else { show(0); play(); }
+    else show(Math.round((reduced ? 14.8 : 0) * FPS));
+    if (THEME) renderMusic();
   });
 })();
 </script>

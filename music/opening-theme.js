@@ -16,7 +16,7 @@
 //  10.0 s   pigeon   chirps and wing flaps as the pigeon flies off (bar 7)
 //  11.7 s   sink     falling line as the balloon sinks (bar 8)
 //  13.9 s   snag     a plink as it catches on the lamppost, then bobs (bars 9-10)
-//  16.7 s   shoes    two soft footsteps, then home to C (bars 11-12)
+//  16.7 s   shoes    four footsteps on the beat, then home to C (bars 11-12)
 (function (global) {
   "use strict";
 
@@ -36,6 +36,10 @@
     shoes: 10 * 3,
     end: TOTAL_BEATS,
   };
+
+  // Pascal's footsteps land on the waltz beat: [bar, beat, volume].
+  // The animation plants a shoe on each one.
+  const FOOTSTEPS = [[11, 0, 0.5], [11, 1, 0.45], [11, 2, 0.55], [12, 0, 0.3]];
 
   // Melody as [bar (1-based), beat (0-based), length in beats, MIDI note].
   const MELODY = [
@@ -255,8 +259,7 @@
     bell(ctx, bus, at(9, 2), 96, 0.04);
 
     // Pascal's shoes step into frame.
-    footstep(ctx, bus, at(11, 0), 0.5);
-    footstep(ctx, bus, at(11, 2), 0.55);
+    FOOTSTEPS.forEach(([bar, b, vol]) => footstep(ctx, bus, at(bar, b), vol));
 
     // A last music-box note over the home chord.
     bell(ctx, bus, at(12, 1), 84, 0.06);
@@ -274,6 +277,11 @@
     cueTime(name, duration = DEFAULT_DURATION) {
       if (!(name in CUES)) throw new Error("Unknown cue: " + name);
       return (CUES[name] / TOTAL_BEATS) * duration;
+    },
+
+    // Seconds from the start of the scene at which each footstep lands.
+    stepTimes(duration = DEFAULT_DURATION) {
+      return FOOTSTEPS.map(([bar, b]) => (((bar - 1) * BEATS_PER_BAR + b) / TOTAL_BEATS) * duration);
     },
 
     // Starts the theme. Pass an existing AudioContext to share one with the
