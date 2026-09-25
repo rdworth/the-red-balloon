@@ -27,7 +27,7 @@ export default defineConfig({
   base: './',
   plugins: [copyStaticPages()],
   build: {
-    // hashed files from the home page go here, so they can't collide with the copied assets/ folder
-    assetsDir: '_home',
+    // the home page's hashed stills, kept out of the copied assets/ folder
+    assetsDir: 'home',
   },
 });
