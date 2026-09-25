@@ -1,0 +1,286 @@
+<title>The Red Balloon Cover</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cabin+Sketch:wght@700&family=Patrick+Hand&display=swap">
+<style>
+  /* One deliberate look: a kraft-paper craft table. Single theme by choice. */
+  :root {
+    --kraft: #c4a574;
+    --kraft-dark: #a8895a;
+    --paper: #f4ecdb;
+    --pencil: #37302c;
+    --balloon: #d42a22;
+    --sky: #86a9c4;
+    --tape: rgba(236, 226, 196, .78);
+    color-scheme: light;
+  }
+  html, body { background: var(--kraft); color: var(--pencil); }
+  body {
+    font-family: "Patrick Hand", "Comic Sans MS", "Chalkboard SE", cursive;
+    padding-inline: 16px;
+    padding-block: 32px 48px;
+    min-height: 100%;
+    background-color: var(--kraft);
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(255,255,255,.08) 0 1px, transparent 2px),
+      radial-gradient(circle at 70% 80%, rgba(0,0,0,.06) 0 1px, transparent 2px);
+    background-size: 7px 7px, 11px 11px;
+  }
+  .table { max-width: 620px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; align-items: center; }
+  .poster {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    aspect-ratio: 3 / 4;
+    transform: rotate(-1.2deg);
+    filter: drop-shadow(2px 5px 4px rgba(60, 40, 15, .35));
+  }
+  .poster svg { display: block; width: 100%; height: 100%; }
+  .tape {
+    position: absolute; width: 22%; height: 7%;
+    background: var(--tape);
+    box-shadow: 0 1px 2px rgba(60,40,15,.15);
+    clip-path: polygon(3% 8%, 12% 0, 25% 6%, 40% 0, 58% 5%, 75% 0, 90% 6%, 100% 2%, 97% 50%, 100% 96%, 86% 100%, 70% 94%, 52% 100%, 34% 95%, 18% 100%, 4% 94%, 0 50%);
+  }
+  .tape.tl { top: -2.5%; left: -5%; transform: rotate(-38deg); }
+  .tape.tr { top: -2%; right: -6%; transform: rotate(33deg); }
+  .tape.br { bottom: -2%; right: -4%; transform: rotate(-30deg); }
+  .label {
+    background: var(--paper);
+    padding: 10px 18px 12px;
+    transform: rotate(1.4deg);
+    box-shadow: 1px 3px 3px rgba(60, 40, 15, .3);
+    text-align: center;
+    max-width: 30rem;
+    clip-path: polygon(0 4%, 6% 0, 20% 3%, 37% 0, 55% 4%, 72% 0, 88% 3%, 100% 0, 99% 50%, 100% 97%, 85% 100%, 66% 96%, 48% 100%, 30% 97%, 14% 100%, 0 96%, 1% 50%);
+  }
+  .label p { margin: 0; font-size: 1.15rem; line-height: 1.35; text-wrap: balance; }
+  .label small { display: block; font-size: .95rem; opacity: .75; letter-spacing: .02em; margin-top: 2px; }
+</style>
+
+<div class="table">
+  <div class="poster" role="img" aria-label="Cover art: a small boy in a grey coat holds the string of a big red balloon above the grey rooftops of Paris, all cut from torn craft paper and scribbled in colored pencil.">
+    <svg id="cover" viewBox="0 0 600 800" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <defs>
+        <!-- torn paper edge -->
+        <filter id="torn" x="-5%" y="-5%" width="110%" height="110%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.045" numOctaves="3" seed="4" result="n"/>
+          <feDisplacementMap in="SourceGraphic" in2="n" scale="9" xChannelSelector="R" yChannelSelector="G"/>
+        </filter>
+        <!-- torn edge with a pale fibrous rim and a soft shadow -->
+        <filter id="scrap" x="-8%" y="-8%" width="116%" height="116%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="3" seed="9" result="n"/>
+          <feDisplacementMap in="SourceGraphic" in2="n" scale="10" xChannelSelector="R" yChannelSelector="G" result="shape"/>
+          <feMorphology in="shape" operator="dilate" radius="2.2" result="fat"/>
+          <feDisplacementMap in="fat" in2="n" scale="6" xChannelSelector="G" yChannelSelector="R" result="rimShape"/>
+          <feFlood flood-color="#fbf5e8" result="white"/>
+          <feComposite in="white" in2="rimShape" operator="in" result="rim"/>
+          <feGaussianBlur in="rimShape" stdDeviation="2" result="blur"/>
+          <feOffset in="blur" dx="1.5" dy="2.5" result="off"/>
+          <feFlood flood-color="#3b2a14" flood-opacity=".35"/>
+          <feComposite in2="off" operator="in" result="shadow"/>
+          <feMerge><feMergeNode in="shadow"/><feMergeNode in="rim"/><feMergeNode in="shape"/></feMerge>
+        </filter>
+        <!-- wobbly pencil line that "boils" like stop-motion -->
+        <filter id="pencil" x="-10%" y="-10%" width="120%" height="120%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="1" result="n">
+            <animate attributeName="seed" values="1;7;13" dur="0.5s" calcMode="discrete" repeatCount="indefinite"/>
+          </feTurbulence>
+          <feDisplacementMap in="SourceGraphic" in2="n" scale="4" xChannelSelector="R" yChannelSelector="G"/>
+        </filter>
+        <!-- paper grain overlay -->
+        <filter id="grain">
+          <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="3"/>
+          <feColorMatrix values="0 0 0 0 .25  0 0 0 0 .2  0 0 0 0 .12  0 0 0 .55 -.18"/>
+        </filter>
+        <!-- colored-pencil hatching -->
+        <pattern id="hatchRed" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(38)">
+          <line x1="0" y1="0" x2="0" y2="7" stroke="#8f140f" stroke-width="1.6" opacity=".55"/>
+        </pattern>
+        <pattern id="hatchGrey" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(-50)">
+          <line x1="0" y1="0" x2="0" y2="6" stroke="#2e2a33" stroke-width="1.1" opacity=".35"/>
+        </pattern>
+        <pattern id="hatchSky" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(20)">
+          <line x1="0" y1="0" x2="0" y2="9" stroke="#f4ecdb" stroke-width="1.4" opacity=".35"/>
+        </pattern>
+        <pattern id="cobbles" width="34" height="18" patternUnits="userSpaceOnUse">
+          <ellipse cx="9" cy="5" rx="7" ry="4" fill="none" stroke="#5a4a3c" stroke-width="1.3" opacity=".6"/>
+          <ellipse cx="26" cy="13" rx="7" ry="4" fill="none" stroke="#5a4a3c" stroke-width="1.3" opacity=".6"/>
+        </pattern>
+      </defs>
+
+      <!-- backing sheet -->
+      <rect x="6" y="6" width="588" height="788" fill="#f4ecdb" filter="url(#torn)"/>
+
+      <!-- sky: blue construction paper -->
+      <g filter="url(#scrap)">
+        <rect x="28" y="26" width="544" height="560" fill="#86a9c4"/>
+      </g>
+      <rect x="28" y="26" width="544" height="560" fill="url(#hatchSky)" filter="url(#torn)"/>
+
+      <!-- pale sun behind cloud -->
+      <g filter="url(#scrap)">
+        <circle cx="120" cy="330" r="46" fill="#f1d27a"/>
+      </g>
+
+      <!-- clouds, white tissue -->
+      <g filter="url(#scrap)" opacity=".92">
+        <path d="M60 372 q10 -34 46 -26 q14 -30 52 -16 q30 -8 36 22 q28 4 20 26 z" fill="#eef1f2"/>
+        <path d="M388 250 q8 -24 38 -18 q16 -22 44 -8 q26 -4 28 18 q20 6 12 22 l-126 4 z" fill="#eef1f2"/>
+      </g>
+
+      <!-- back rooftops: lavender grey paper -->
+      <g filter="url(#scrap)">
+        <path d="M28 470 L28 430 L70 430 L70 404 L84 404 L84 430 L120 430 L150 396 L210 396 L236 430 L262 430 L262 386 L276 386 L276 420 L318 420 L342 390 L420 390 L446 420 L476 420 L476 398 L490 398 L490 420 L540 420 L572 400 L572 590 L28 590 Z" fill="#a7a3b5"/>
+      </g>
+
+      <!-- front rooftops: slate grey paper with chimneys -->
+      <g filter="url(#scrap)">
+        <path d="M28 520 L28 486 L60 486 L96 452 L186 452 L214 486 L240 486 L240 470 L258 470 L258 486 L300 486 L300 466 L318 466 L318 486 L352 486 L386 448 L498 448 L528 486 L572 486 L572 600 L28 600 Z" fill="#6f6d7b"/>
+      </g>
+      <g filter="url(#pencil)" stroke="#2e2a33" stroke-width="1.6" fill="none" opacity=".7" stroke-linecap="round">
+        <!-- zinc roof seams -->
+        <path d="M110 456 L102 486 M130 456 L126 486 M150 456 L150 486 M170 456 L174 486"/>
+        <path d="M404 452 L396 486 M428 452 L424 486 M452 452 L452 486 M476 452 L480 486"/>
+        <!-- chimney pots -->
+        <path d="M243 470 v-10 h4 v10 M251 470 v-12 h4 v12 M303 466 v-9 h4 v9 M311 466 v-11 h4 v11"/>
+      </g>
+      <rect x="28" y="448" width="544" height="152" fill="url(#hatchGrey)" filter="url(#torn)"/>
+
+      <!-- windows: cut yellow paper squares -->
+      <g filter="url(#scrap)" fill="#f0c95a">
+        <rect x="70" y="512" width="18" height="24"/>
+        <rect x="112" y="508" width="18" height="24"/>
+        <rect x="190" y="514" width="18" height="24"/>
+        <rect x="396" y="506" width="18" height="24"/>
+        <rect x="444" y="510" width="18" height="24"/>
+        <rect x="520" y="514" width="18" height="24"/>
+      </g>
+      <g filter="url(#pencil)" stroke="#37302c" stroke-width="1.4" fill="none">
+        <path d="M79 512 v24 M70 524 h18 M121 508 v24 M112 520 h18 M199 514 v24 M190 526 h18 M405 506 v24 M396 518 h18 M453 510 v24 M444 522 h18 M529 514 v24 M520 526 h18"/>
+      </g>
+
+      <!-- street: brown paper with cobbles -->
+      <g filter="url(#scrap)">
+        <path d="M22 590 L578 578 L578 776 L22 776 Z" fill="#9c7c5c"/>
+      </g>
+      <rect x="30" y="600" width="540" height="170" fill="url(#cobbles)" filter="url(#torn)"/>
+
+      <!-- a lamp post -->
+      <g filter="url(#pencil)" stroke="#2d2a28" stroke-width="5" stroke-linecap="round" fill="none">
+        <path d="M468 700 L470 548"/>
+        <path d="M458 548 h24"/>
+      </g>
+      <g filter="url(#scrap)"><path d="M456 548 l6 -26 h16 l6 26 z" fill="#3d3a3f"/></g>
+
+      <!-- balloon + string, bobbing in stepped frames -->
+      <g class="balloon-rig">
+        <g filter="url(#pencil)">
+          <path d="M392 322 C 372 400, 330 450, 318 520 S 262 606, 246 628" fill="none" stroke="#2d2a28" stroke-width="2" stroke-linecap="round"/>
+        </g>
+        <g filter="url(#scrap)">
+          <ellipse cx="400" cy="224" rx="86" ry="98" fill="#d42a22"/>
+          <path d="M388 318 l12 -4 l12 4 l-6 12 h-12 z" fill="#b41d17"/>
+        </g>
+        <ellipse cx="400" cy="224" rx="84" ry="96" fill="url(#hatchRed)" filter="url(#torn)"/>
+        <g filter="url(#pencil)" fill="none" stroke-linecap="round">
+          <path d="M346 196 C 352 162, 378 142, 404 140" stroke="#fbeee2" stroke-width="7" opacity=".85"/>
+          <path d="M344 222 C 344 214, 345 210, 346 206" stroke="#fbeee2" stroke-width="5" opacity=".7"/>
+          <ellipse cx="400" cy="224" rx="87" ry="99" stroke="#6e0d09" stroke-width="2.4" opacity=".75"/>
+        </g>
+      </g>
+
+      <!-- Pascal: the boy -->
+      <g class="boy">
+        <!-- legs -->
+        <g filter="url(#pencil)" stroke="#2d2a28" stroke-width="7" stroke-linecap="round">
+          <path d="M214 700 L208 738"/>
+          <path d="M236 700 L244 738"/>
+        </g>
+        <g filter="url(#scrap)">
+          <ellipse cx="204" cy="742" rx="12" ry="6" fill="#2d2a28"/>
+          <ellipse cx="249" cy="742" rx="12" ry="6" fill="#2d2a28"/>
+          <!-- coat -->
+          <path d="M200 636 Q226 620 252 636 L262 708 L190 708 Z" fill="#8a8a8f"/>
+          <!-- satchel -->
+          <rect x="176" y="660" width="26" height="30" rx="3" fill="#8a5a33"/>
+          <!-- head -->
+          <circle cx="226" cy="604" r="26" fill="#f0c7a2"/>
+          <!-- hair -->
+          <path d="M200 598 Q204 572 228 574 Q252 574 252 596 Q240 586 226 590 Q212 586 200 598 Z" fill="#6b4226"/>
+        </g>
+        <rect x="190" y="630" width="72" height="80" fill="url(#hatchGrey)" filter="url(#torn)"/>
+        <!-- raised arm holding string -->
+        <g filter="url(#pencil)" stroke="#8a8a8f" stroke-width="10" stroke-linecap="round" fill="none">
+          <path d="M248 646 L250 628"/>
+        </g>
+        <g filter="url(#pencil)" fill="none" stroke="#37302c" stroke-linecap="round">
+          <circle cx="248" cy="626" r="5" fill="#f0c7a2" stroke-width="1.5"/>
+          <path d="M218 604 l0 3 M234 603 l0 3" stroke-width="3"/>
+          <path d="M219 616 q7 5 14 0" stroke-width="1.8"/>
+          <path d="M226 638 v66" stroke-width="1.4" opacity=".6"/>
+          <path d="M186 660 L232 638" stroke="#5c3a1c" stroke-width="2.5"/>
+          <circle cx="222" cy="656" r="1.8" fill="#37302c"/>
+          <circle cx="222" cy="676" r="1.8" fill="#37302c"/>
+        </g>
+      </g>
+
+      <!-- birds -->
+      <g filter="url(#pencil)" stroke="#37302c" stroke-width="2" fill="none" stroke-linecap="round">
+        <path d="M478 108 q8 -8 14 0 q6 -8 14 0"/>
+        <path d="M520 138 q6 -6 11 0 q5 -6 11 0"/>
+      </g>
+
+      <!-- title on torn paper scraps -->
+      <g transform="rotate(-4 150 90)">
+        <g filter="url(#scrap)"><rect x="54" y="58" width="108" height="56" fill="#f4ecdb"/></g>
+        <text x="108" y="100" text-anchor="middle" font-family="'Cabin Sketch', 'Comic Sans MS', cursive" font-weight="700" font-size="38" fill="#37302c">THE</text>
+      </g>
+      <g transform="rotate(3 150 150)">
+        <g filter="url(#scrap)"><rect x="46" y="118" width="178" height="80" fill="#d42a22"/></g>
+        <text x="135" y="178" text-anchor="middle" font-family="'Cabin Sketch', 'Comic Sans MS', cursive" font-weight="700" font-size="62" fill="#f4ecdb" textLength="140" lengthAdjust="spacingAndGlyphs">RED</text>
+      </g>
+      <g transform="rotate(-2.5 180 240)">
+        <g filter="url(#scrap)"><rect x="40" y="206" width="264" height="74" fill="#f4ecdb"/></g>
+        <text x="172" y="262" text-anchor="middle" font-family="'Cabin Sketch', 'Comic Sans MS', cursive" font-weight="700" font-size="54" fill="#37302c" textLength="236" lengthAdjust="spacingAndGlyphs">BALLOON</text>
+      </g>
+
+      <!-- a crayon signature like a kid's name tag -->
+      <g transform="rotate(-3 470 745)">
+        <g filter="url(#scrap)"><rect x="402" y="722" width="146" height="40" fill="#f6e27a"/></g>
+        <text x="475" y="749" text-anchor="middle" font-family="'Patrick Hand', 'Comic Sans MS', cursive" font-size="21" fill="#37302c">Paris, 1956</text>
+      </g>
+
+      <!-- paper grain over everything -->
+      <rect x="6" y="6" width="588" height="788" filter="url(#grain)" opacity=".5" pointer-events="none"/>
+    </svg>
+    <span class="tape tl" aria-hidden="true"></span>
+    <span class="tape tr" aria-hidden="true"></span>
+    <span class="tape br" aria-hidden="true"></span>
+  </div>
+
+  <div class="label">
+    <p>A stop-motion retelling in 20 scenes, made of torn paper, colored pencil and glue.</p>
+    <small>After Albert Lamorisse's <i>Le Ballon Rouge</i> (1956)</small>
+  </div>
+</div>
+
+<style>
+  /* balloon bobs at 6 frames a second, like hand-moved paper */
+  .balloon-rig { animation: bob 2.4s steps(1, end) infinite; transform-origin: 246px 628px; }
+  @keyframes bob {
+    0%   { transform: translate(0, 0) rotate(0deg); }
+    16%  { transform: translate(2px, -4px) rotate(.6deg); }
+    33%  { transform: translate(4px, -7px) rotate(1.2deg); }
+    50%  { transform: translate(3px, -5px) rotate(.8deg); }
+    66%  { transform: translate(0, -2px) rotate(-.3deg); }
+    83%  { transform: translate(-2px, -1px) rotate(-.8deg); }
+  }
+  @media (prefers-reduced-motion: reduce) { .balloon-rig { animation: none; } }
+</style>
+<script>
+  if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const svg = document.getElementById('cover');
+    if (svg && svg.pauseAnimations) svg.pauseAnimations();
+  }
+</script>
