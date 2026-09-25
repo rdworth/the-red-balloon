@@ -115,30 +115,18 @@
   .note strong { color: var(--balloon); font-weight: normal; }
 
   /* ---- the storyboard ---- */
-  .story { display: flex; flex-direction: column; gap: 24px; margin-top: 18px; padding-top: 30px; border-top: 2px dashed rgba(55, 48, 44, .35); }
+  .story { display: flex; flex-direction: column; margin-top: 18px; padding-top: 30px; border-top: 2px dashed rgba(55, 48, 44, .35); }
   .story-head { align-self: center; text-align: center; background: var(--paper); padding: 10px 24px 12px; transform: rotate(.8deg); box-shadow: 1px 3px 4px rgba(60, 40, 15, .3);
     clip-path: polygon(0 5%, 8% 0, 24% 4%, 42% 0, 60% 5%, 78% 0, 92% 4%, 100% 0, 99% 50%, 100% 96%, 84% 100%, 64% 95%, 46% 100%, 28% 96%, 12% 100%, 0 95%, 1% 50%); }
   .story-head h2 { margin: 0; font-family: "Cabin Sketch", "Comic Sans MS", cursive; font-weight: 700; font-size: 34px; line-height: 1.1; }
   .story-head p { margin: 4px 0 0; font-size: 17px; color: var(--pencil-soft); text-wrap: balance; }
   .story-head a { color: var(--balloon); }
-  .board { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 26px 20px; }
-  .sb { background: var(--paper); padding: 8px 8px 10px; box-shadow: 1px 4px 5px rgba(60, 40, 15, .28); transform: rotate(var(--tilt, 0deg)); }
-  .sb:nth-child(4n+1) { --tilt: -.9deg; } .sb:nth-child(4n+2) { --tilt: .6deg; } .sb:nth-child(4n+3) { --tilt: -.4deg; } .sb:nth-child(4n) { --tilt: .9deg; }
-  .sb-head { display: flex; align-items: baseline; gap: 7px; padding: 0 2px 6px; min-width: 0; }
-  .sb .n { flex: none; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; transform: translateY(2px); background: var(--pencil); color: var(--paper); font-size: 14px; line-height: 1; }
-  .sb h3 { margin: 0; font-family: "Cabin Sketch", "Comic Sans MS", cursive; font-weight: 700; font-size: 18px; line-height: 1.1; flex: 1; min-width: 0; }
-  .sb .shot { flex: none; font-size: 13px; color: var(--pencil-soft); text-transform: uppercase; letter-spacing: .05em; }
-  .sb img { display: block; width: 100%; height: auto; border: 1.5px solid var(--pencil); background: #a9c2d4; }
-  .sb p { margin: 6px 2px 0; font-size: 15px; line-height: 1.3; color: var(--pencil-soft); }
 
-  @media (max-width: 960px) { .board { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
   @media (max-width: 860px) { .panels { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-  @media (max-width: 700px) { .board { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   @media (max-width: 540px) {
     body { padding-top: 24px; }
     .panels { grid-template-columns: minmax(0, 1fr); gap: 30px; }
     .gallery a { font-size: 24px; }
-    .board { grid-template-columns: minmax(0, 1fr); }
   }
   @media (prefers-reduced-motion: reduce) { .panel, .gallery a { transition: none; } }
 </style>
@@ -204,108 +192,6 @@
       <h2 id="story-title">The whole story in 20 frames</h2>
       <p>The storyboard for the full film, from the lamppost to the sky. <a href="storyboard.html">Open the storyboard</a></p>
     </div>
-    <ol class="board">
-    <li class="sb">
-      <div class="sb-head"><span class="n" aria-hidden="true">1</span><h3>A balloon on a lamppost</h3><span class="shot">Wide</span></div>
-      <img src="home/storyboard/01.jpg" alt="Frame 1: On his way to school, Pascal spots a red balloon caught on a lamppost and climbs up to set it free." width="484" height="304" loading="lazy" decoding="async">
-      <p>On his way to school, Pascal spots a red balloon caught on a lamppost and climbs up to set it free.</p>
-    </li>
-    <li class="sb">
-      <div class="sb-head"><span class="n" aria-hidden="true">2</span><h3>No balloons on the bus</h3><span class="shot">Medium</span></div>
-      <img src="home/storyboard/02.jpg" alt="Frame 2: The bus conductor shakes his head: no balloons allowed. The bus pulls away without him." width="484" height="304" loading="lazy" decoding="async">
-      <p>The bus conductor shakes his head: no balloons allowed. The bus pulls away without him.</p>
-    </li>
-    <li class="sb">
-      <div class="sb-head"><span class="n" aria-hidden="true">3</span><h3>Running late</h3><span class="shot">Tracking</span></div>
-      <img src="home/storyboard/03.jpg" alt="Frame 3: So Pascal runs the whole way to school, the balloon bobbing along behind him." width="484" height="304" loading="lazy" decoding="async">
-      <p>So Pascal runs the whole way to school, the balloon bobbing along behind him.</p>
-    </li>
-    <li class="sb">
-      <div class="sb-head"><span class="n" aria-hidden="true">4</span><h3>Sharing umbrellas</h3><span class="shot">Medium</span></div>
-      <img src="home/storyboard/04.jpg" alt="Frame 4: Walking home in the rain, Pascal ducks under strangers&#x27; umbrellas so the balloon stays dry." width="484" height="304" loading="lazy" decoding="async">
-      <p>Walking home in the rain, Pascal ducks under strangers&#x27; umbrellas so the balloon stays dry.</p>
-    </li>
-    <li class="sb">
-      <div class="sb-head"><span class="n" aria-hidden="true">5</span><h3>Out the window</h3><span class="shot">Medium</span></div>
-      <img src="home/storyboard/05.jpg" alt="Frame 5: At home, his grandmother wants nothing to do with it and lets the balloon out of the window." width="484" height="304" loading="lazy" decoding="async">
-      <p>At home, his grandmother wants nothing to do with it and lets the balloon out of the window.</p>
-    </li>
-    <li class="sb">
-      <div class="sb-head"><span class="n" aria-hidden="true">6</span><h3>Waiting at the window</h3><span class="shot">Medium</span></div>
-      <img src="home/storyboard/06.jpg" alt="Frame 6: But the balloon doesn&#x27;t fly away. It waits outside all night, and Pascal lets it back in." width="484" height="304" loading="lazy" decoding="async">
-      <p>But the balloon doesn&#x27;t fly away. It waits outside all night, and Pascal lets it back in.</p>
-    </li>
-    <li class="sb">
-      <div class="sb-head"><span class="n" aria-hidden="true">7</span><h3>It follows by itself</h3><span class="shot">Wide</span></div>
-      <img src="home/storyboard/07.jpg" alt="Frame 7: Next morning it follows him down the street on its own, with nobody holding the string." width="484" height="304" loading="lazy" decoding="async">
-      <p>Next morning it follows him down the street on its own, with nobody holding the string.</p>
-    </li>
-    <li class="sb">
-      <div class="sb-head"><span class="n" aria-hidden="true">8</span><h3>Chasing the bus</h3><span class="shot">Tracking</span></div>
-      <img src="home/storyboard/08.jpg" alt="Frame 8: When Pascal takes the bus, the balloon chases it all the way to school." width="484" height="304" loading="lazy" decoding="async">
-      <p>When Pascal takes the bus, the balloon chases it all the way to school.</p>
-    </li>
-    <li class="sb">
-      <div class="sb-head"><span class="n" aria-hidden="true">9</span><h3>Uproar in class</h3><span class="shot">Wide</span></div>
-      <img src="home/storyboard/09.jpg" alt="Frame 9: It floats into the classroom. The children cheer and the lesson falls apart." width="484" height="304" loading="lazy" decoding="async">
-      <p>It floats into the classroom. The children cheer and the lesson falls apart.</p>
-    </li>
-    <li class="sb">
-      <div class="sb-head"><span class="n" aria-hidden="true">10</span><h3>The headmaster</h3><span class="shot">Wide</span></div>
-      <img src="home/storyboard/10.jpg" alt="Frame 10: The headmaster locks Pascal in his office, but the balloon pesters him down the street until he lets the boy go." width="484" height="304" loading="lazy" decoding="async">
-      <p>The headmaster locks Pascal in his office, but the balloon pesters him down the street until he lets the boy go.</p>
-    </li>
-    <li class="sb">
-      <div class="sb-head"><span class="n" aria-hidden="true">11</span><h3>The girl with the blue balloon</h3><span class="shot">Medium</span></div>
-      <img src="home/storyboard/11.jpg" alt="Frame 11: Pascal meets a girl with a blue balloon. The two balloons can&#x27;t stop bobbing toward each other." width="484" height="304" loading="lazy" decoding="async">
-      <p>Pascal meets a girl with a blue balloon. The two balloons can&#x27;t stop bobbing toward each other.</p>
-    </li>
-    <li class="sb">
-      <div class="sb-head"><span class="n" aria-hidden="true">12</span><h3>Sunday at church</h3><span class="shot">Wide</span></div>
-      <img src="home/storyboard/12.jpg" alt="Frame 12: On Sunday it follows Pascal and his mother into church, and the beadle marches them straight back out." width="484" height="304" loading="lazy" decoding="async">
-      <p>On Sunday it follows Pascal and his mother into church, and the beadle marches them straight back out.</p>
-    </li>
-    <li class="sb">
-      <div class="sb-head"><span class="n" aria-hidden="true">13</span><h3>Outside the bakery</h3><span class="shot">Wide</span></div>
-      <img src="home/storyboard/13.jpg" alt="Frame 13: Pascal leaves the balloon outside the bakery while he buys bread. A gang of boys is watching from the corner." width="484" height="304" loading="lazy" decoding="async">
-      <p>Pascal leaves the balloon outside the bakery while he buys bread. A gang of boys is watching from the corner.</p>
-    </li>
-    <li class="sb">
-      <div class="sb-head"><span class="n" aria-hidden="true">14</span><h3>Snatched!</h3><span class="shot">Wide</span></div>
-      <img src="home/storyboard/14.jpg" alt="Frame 14: The boys grab it and run. Pascal drops his bread and gives chase." width="484" height="304" loading="lazy" decoding="async">
-      <p>The boys grab it and run. Pascal drops his bread and gives chase.</p>
-    </li>
-    <li class="sb">
-      <div class="sb-head"><span class="n" aria-hidden="true">15</span><h3>The rescue</h3><span class="shot">Medium</span></div>
-      <img src="home/storyboard/15.jpg" alt="Frame 15: He finds it tied up in a courtyard where the boys are taking aim, and he pulls it free." width="484" height="304" loading="lazy" decoding="async">
-      <p>He finds it tied up in a courtyard where the boys are taking aim, and he pulls it free.</p>
-    </li>
-    <li class="sb">
-      <div class="sb-head"><span class="n" aria-hidden="true">16</span><h3>Down the steps</h3><span class="shot">Wide</span></div>
-      <img src="home/storyboard/16.jpg" alt="Frame 16: They run down the steep steps of Ménilmontant with the whole gang close behind." width="484" height="304" loading="lazy" decoding="async">
-      <p>They run down the steep steps of Ménilmontant with the whole gang close behind.</p>
-    </li>
-    <li class="sb">
-      <div class="sb-head"><span class="n" aria-hidden="true">17</span><h3>Cornered</h3><span class="shot">Wide</span></div>
-      <img src="home/storyboard/17.jpg" alt="Frame 17: The boys corner them on a patch of waste ground and start throwing stones." width="484" height="304" loading="lazy" decoding="async">
-      <p>The boys corner them on a patch of waste ground and start throwing stones.</p>
-    </li>
-    <li class="sb">
-      <div class="sb-head"><span class="n" aria-hidden="true">18</span><h3>The balloon falls</h3><span class="shot">Close-up</span></div>
-      <img src="home/storyboard/18.jpg" alt="Frame 18: A stone hits. The balloon slowly shrinks and sinks, and one of the boys stamps on it." width="484" height="304" loading="lazy" decoding="async">
-      <p>A stone hits. The balloon slowly shrinks and sinks, and one of the boys stamps on it.</p>
-    </li>
-    <li class="sb">
-      <div class="sb-head"><span class="n" aria-hidden="true">19</span><h3>Every balloon breaks free</h3><span class="shot">Wide</span></div>
-      <img src="home/storyboard/19.jpg" alt="Frame 19: All over Paris, balloons slip free from vendors, windows and children&#x27;s hands." width="484" height="304" loading="lazy" decoding="async">
-      <p>All over Paris, balloons slip free from vendors, windows and children&#x27;s hands.</p>
-    </li>
-    <li class="sb">
-      <div class="sb-head"><span class="n" aria-hidden="true">20</span><h3>Up over Paris</h3><span class="shot">Wide</span></div>
-      <img src="home/storyboard/20.jpg" alt="Frame 20: They gather around Pascal. He holds on tight, and they carry him up over the rooftops of Paris." width="484" height="304" loading="lazy" decoding="async">
-      <p>They gather around Pascal. He holds on tight, and they carry him up over the rooftops of Paris.</p>
-    </li>
-    </ol>
   </section>
 </main>
 </html>
