@@ -1,0 +1,1037 @@
+<title>Balloon in Clay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700&display=swap">
+<style>
+  /* Alternate take of scene 1: a flat plasticine set, shot a frame at a time.
+     Nothing here is shared with the other openings except the music. */
+  :root {
+    --ground: #efe6da;
+    --sheet: #fbf6ee;
+    --ink: #2b2320;
+    --ink-soft: #6b5e57;
+    --red: #d8221f;
+    --teal: #2f8f8b;
+    --rule: rgba(43, 35, 32, .13);
+    --hot: rgba(216, 34, 31, .08);
+    --btn: #f5ede2;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #1c1816;
+      --sheet: #26211e;
+      --ink: #f3ebe2;
+      --ink-soft: #b3a69c;
+      --red: #ff5048;
+      --teal: #62c3be;
+      --rule: rgba(243, 235, 226, .15);
+      --hot: rgba(255, 80, 72, .13);
+      --btn: #332c28;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #1c1816;
+    --sheet: #26211e;
+    --ink: #f3ebe2;
+    --ink-soft: #b3a69c;
+    --red: #ff5048;
+    --teal: #62c3be;
+    --rule: rgba(243, 235, 226, .15);
+    --hot: rgba(255, 80, 72, .13);
+    --btn: #332c28;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: "Nunito", system-ui, sans-serif;
+    font-size: 17px;
+    line-height: 1.5;
+    padding-inline: 16px;
+    padding-block: 28px 56px;
+  }
+  .wrap { max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+  header { display: flex; flex-direction: column; gap: 6px; }
+  .eyebrow { margin: 0; font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); }
+  h1 { margin: 0; font-family: "Fredoka", "Nunito", sans-serif; font-weight: 700; font-size: clamp(32px, 5.6vw, 54px); line-height: 1.05; text-wrap: balance; }
+  h1 .red { color: var(--red); }
+  .lede { margin: 0; max-width: 66ch; color: var(--ink-soft); }
+
+  .screen {
+    position: relative;
+    padding: 10px;
+    border-radius: 22px;
+    background: #3a2f2a;
+    box-shadow: inset 3px 4px 6px rgba(255, 235, 215, .18), inset -4px -6px 10px rgba(0, 0, 0, .45), 0 10px 24px rgba(40, 20, 10, .25);
+  }
+  canvas { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; max-width: 100%; background: #b9dbee; cursor: pointer; border-radius: 14px; }
+  .loading { position: absolute; inset: 10px; display: grid; place-items: center; font-family: "Fredoka", sans-serif; font-size: 22px; color: #fbf6ee; background: rgba(58, 47, 42, .6); border-radius: 14px; pointer-events: none; }
+  .loading[hidden] { display: none; }
+
+  .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; }
+  .btn {
+    font: inherit; font-family: "Fredoka", sans-serif; font-weight: 600; font-size: 17px;
+    color: var(--ink); background: var(--btn);
+    border: 0; border-radius: 999px; padding: 8px 20px; cursor: pointer;
+    box-shadow: inset 2px 3px 3px rgba(255, 255, 255, .35), inset -2px -4px 5px rgba(0, 0, 0, .18), 0 3px 6px rgba(40, 20, 10, .2);
+  }
+  .btn.primary { background: var(--red); color: #fff; }
+  .btn:active { transform: translateY(1px) scale(.98); }
+  .btn:focus-visible, .scrub:focus-visible, .beat button:focus-visible { outline: 3px solid var(--teal); outline-offset: 3px; }
+  .scrub { flex: 1 1 220px; min-width: 0; accent-color: var(--red); height: 28px; }
+  .clock { font-variant-numeric: tabular-nums; min-width: 9ch; text-align: right; }
+
+  .sheet { background: var(--sheet); border-radius: 18px; padding: 20px 20px 22px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 2px 0 var(--rule); }
+  .sheet h2 { margin: 0; font-family: "Fredoka", sans-serif; font-weight: 600; font-size: 25px; line-height: 1.1; }
+  .sheet .meta { margin: 0; color: var(--ink-soft); font-size: 15px; max-width: 72ch; }
+  .beats { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+  .beat button {
+    width: 100%;
+    display: grid; grid-template-columns: 6.6em 1fr; gap: 2px 14px; align-items: baseline;
+    font: inherit; color: inherit; text-align: left;
+    background: none; border: 0; border-top: 1px solid var(--rule); padding: 8px 8px; cursor: pointer; border-radius: 10px;
+  }
+  .beat:first-child button { border-top: 0; }
+  .beat button:hover { background: var(--hot); }
+  .beat .t { font-variant-numeric: tabular-nums; color: var(--ink-soft); font-size: 15px; }
+  .beat .d b { font-family: "Fredoka", sans-serif; font-weight: 600; margin-right: .35em; }
+  .beat .cam { display: block; color: var(--ink-soft); font-size: 14px; }
+  .beat .cam::before { content: "Camera: "; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; font-size: 11px; }
+  .beat.now button { background: var(--hot); }
+  .beat.now .t { color: var(--red); }
+  .beat .cue { color: var(--red); font-size: 14px; white-space: nowrap; }
+  @media (max-width: 520px) {
+    .beat button { grid-template-columns: 1fr; gap: 0; }
+    .screen { padding: 5px; border-radius: 14px; }
+    canvas { border-radius: 10px; }
+  }
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">The Red Balloon · Scene 1, alternate take · 20 seconds</p>
+    <h1>The <span class="red">balloon</span> drifts over Paris, in clay</h1>
+    <p class="lede">The same opening, modelled in plasticine on a flat set. Every piece is a squashed lump of clay with soft rounded edges, a warm key light from the top left and thumbprints left in it. It's shot on ones at 12 frames a second, so the characters boil a little as if they were nudged between every frame, to the same little waltz.</p>
+  </header>
+
+  <div class="screen">
+    <canvas id="stage" width="1280" height="720" role="img" aria-label="Claymation animation: a red plasticine balloon drifts through clay clouds over Paris, sinks past zinc rooftops and a laundry line, startles a pigeon on a balcony, snags its string on a lamppost, and Pascal's shoes walk in before he looks up at it."></canvas>
+    <div class="loading" id="loading">Sculpting the set…</div>
+  </div>
+
+  <div class="controls">
+    <button class="btn primary" id="play" type="button">Play</button>
+    <button class="btn" id="restart" type="button">From the top</button>
+    <button class="btn" id="sound" type="button" aria-pressed="true">Sound on</button>
+    <input class="scrub" id="scrub" type="range" min="0" max="239" step="1" value="0" aria-label="Scrub through the 240 frames">
+    <span class="clock" id="clock">0:00.0 / 0:20</span>
+  </div>
+
+  <section class="sheet" aria-labelledby="beat-title">
+    <h2 id="beat-title">Shot list</h2>
+    <p class="meta">20 seconds, 240 frames at 12 fps, over 12 bars of waltz. Same beats as the paper version. Red notes mark where a sound and a movement land together. Tap a beat to jump to it.</p>
+    <ol class="beats" id="beats"></ol>
+  </section>
+</div>
+
+<script src="music/opening-theme.js"></script>
+<script>
+(() => {
+  'use strict';
+  /* =====================================================================
+     Timing: 20 s, 12 frames a second, synced to music/opening-theme.js
+     ===================================================================== */
+  const DURATION = 20, FPS = 12, FRAMES = DURATION * FPS;
+  const BEATS = [
+    { t: 0, end: 3, name: 'Sky', text: 'The balloon drifts through lumpy clay clouds, the Eiffel Tower far off.', cam: 'high in the sky; a cloud slides past close to the lens.' },
+    { t: 3, end: 7, name: 'Rooftops', text: 'It sinks toward the zinc roofs; the chimney pots puff clay smoke.', cam: 'eases down and pulls wide over the roofs.' },
+    { t: 7, end: 10, name: 'Laundry', text: 'It drops past the laundry strung across an alley and knocks the last shirt swinging.', cam: 'pushes in on the washing.' },
+    { t: 10, end: 12.5, name: 'Pigeon', text: 'A pigeon on a balcony rail hops round on the chirp, then flaps away.', cam: 'close on the balcony.', cue: 'chirp 0:10, wings 0:10.6' },
+    { t: 12.5, end: 16, name: 'Snag', text: "It sinks to the street and the string catches on the lamppost's bar. The balloon stretches and bobs.", cam: 'follows it down, with a bump on the plink.', cue: 'plink 0:13.9' },
+    { t: 16, end: 20, name: 'Shoes', text: "Pascal's shoes walk in on the beat and stop. He looks up at the balloon.", cam: 'drops to the pavement for the shoes, then pulls back to show him looking up.', cue: 'four steps from 0:16.7' },
+  ];
+  const THEME = window.OpeningTheme;
+  const MUSIC_BEAT = DURATION / 36;
+  const CUES = {
+    pigeon: THEME ? THEME.cueTime('pigeon', DURATION) : 10,
+    flap: (THEME ? THEME.cueTime('pigeon', DURATION) : 10) + MUSIC_BEAT,
+    snag: THEME ? THEME.cueTime('snag', DURATION) : 25 * MUSIC_BEAT,
+    steps: THEME && THEME.stepTimes ? THEME.stepTimes(DURATION) : [30, 31, 32, 33].map(b => b * MUSIC_BEAT),
+  };
+
+  const cv = document.getElementById('stage'), ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+
+  /* =====================================================================
+     Small maths
+     ===================================================================== */
+  const mulberry = a => () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  let rnd = mulberry(1);
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const ease = t => { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); };
+  const TAU = Math.PI * 2;
+
+  /* Monotone cubic through keyframes, flat at both ends, so moves ease without overshoot. */
+  function pchip(ts, ys) {
+    const n = ts.length, h = [], d = [], m = new Array(n);
+    for (let i = 0; i < n - 1; i++) { h[i] = ts[i + 1] - ts[i]; d[i] = (ys[i + 1] - ys[i]) / h[i]; }
+    m[0] = 0; m[n - 1] = 0;
+    for (let i = 1; i < n - 1; i++) {
+      if (d[i - 1] * d[i] <= 0) m[i] = 0;
+      else { const w1 = 2 * h[i] + h[i - 1], w2 = h[i] + 2 * h[i - 1]; m[i] = (w1 + w2) / (w1 / d[i - 1] + w2 / d[i]); }
+    }
+    return t => {
+      if (t <= ts[0]) return ys[0];
+      if (t >= ts[n - 1]) return ys[n - 1];
+      let i = 0; while (t > ts[i + 1]) i++;
+      const hh = h[i], s = (t - ts[i]) / hh, s2 = s * s, s3 = s2 * s;
+      return (2 * s3 - 3 * s2 + 1) * ys[i] + (s3 - 2 * s2 + s) * hh * m[i] + (-2 * s3 + 3 * s2) * ys[i + 1] + (s3 - s2) * hh * m[i + 1];
+    };
+  }
+  const track = keys => { const ts = keys.map(k => k[0]); const fs = keys[0].slice(1).map((_, j) => pchip(ts, keys.map(k => k[j + 1]))); return t => fs.map(f => f(t)); };
+
+  function hex(c) { const n = parseInt(c.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
+  function shade(c, f) { const [r, g, b] = hex(c), to = f > 0 ? 255 : 0, a = Math.abs(f); return `rgb(${Math.round(lerp(r, to, a))},${Math.round(lerp(g, to, a))},${Math.round(lerp(b, to, a))})`; }
+
+  /* =====================================================================
+     Plasticine. Shapes are polygons that get resampled, pushed in and out
+     a little (lumps), and smoothed. clay() fills one like a squashed piece
+     of modelling clay: a cast shadow on the set, a darker rolled-under edge
+     on the lower right, a lit edge on the upper left, a satin sheen, grain
+     and thumbprints. SC is pixels per world unit for the context in use,
+     because canvas shadows are measured in pixels.
+     ===================================================================== */
+  let SC = 1;
+  const perim = p => { let s = 0; for (let i = 0; i < p.length; i++) { const a = p[i], b = p[(i + 1) % p.length]; s += Math.hypot(b[0] - a[0], b[1] - a[1]); } return s; };
+  function resample(p, step, closed = true) {
+    const out = [], n = p.length, segs = closed ? n : n - 1;
+    let carry = 0;
+    for (let i = 0; i < segs; i++) {
+      const a = p[i], b = p[(i + 1) % n], len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      let d = carry;
+      while (d < len) { const u = d / len; out.push([lerp(a[0], b[0], u), lerp(a[1], b[1], u)]); d += step; }
+      carry = d - len;
+    }
+    if (!closed) out.push(p[n - 1].slice());
+    return out;
+  }
+  function lump(p, amt, seed, closed = true) {
+    const r = mulberry(seed), L = perim(p);
+    const q = resample(p, clamp(L / 90, 1.5, 14), closed), n = q.length;
+    const hi = Math.max(3, Math.round(L / 45));
+    const waves = [[2 + (r() * 3 | 0), r() * TAU, 1], [4 + (r() * 4 | 0), r() * TAU, .6], [hi, r() * TAU, .35], [hi + 3 + (r() * 5 | 0), r() * TAU, .25]];
+    return q.map((pt, i) => {
+      if (!closed && (i === 0 || i === n - 1)) return pt;
+      const u = i / n; let nz = 0;
+      for (const [f, ph, a] of waves) nz += a * Math.sin(TAU * f * u + ph);
+      const a = q[(i - 1 + n) % n], b = q[(i + 1) % n];
+      const tx = b[0] - a[0], ty = b[1] - a[1], l = Math.hypot(tx, ty) || 1;
+      return [pt[0] + ty / l * nz * amt * .5, pt[1] - tx / l * nz * amt * .5];
+    });
+  }
+  function smoothPath(p, closed = true) {
+    const path = new Path2D(), n = p.length;
+    path.moveTo(p[0][0], p[0][1]);
+    const last = closed ? n : n - 1;
+    for (let i = 0; i < last; i++) {
+      const p0 = p[closed ? (i - 1 + n) % n : Math.max(0, i - 1)], p1 = p[i], p2 = p[(i + 1) % n], p3 = p[closed ? (i + 2) % n : Math.min(n - 1, i + 2)];
+      path.bezierCurveTo(p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6, p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6, p2[0], p2[1]);
+    }
+    if (closed) path.closePath();
+    return path;
+  }
+  function shape(p) {
+    let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+    for (const [x, y] of p) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
+    return { path: smoothPath(p), box: [x0, y0, x1 - x0, y1 - y0] };
+  }
+  function rrPoly(x, y, w, h, r) {
+    r = Math.min(r, w / 2, h / 2); const p = [], k = 5;
+    const cs = [[x + w - r, y + r, -Math.PI / 2], [x + w - r, y + h - r, 0], [x + r, y + h - r, Math.PI / 2], [x + r, y + r, Math.PI]];
+    for (const [cx, cy, a0] of cs) for (let i = 0; i <= k; i++) { const a = a0 + i / k * Math.PI / 2; p.push([cx + r * Math.cos(a), cy + r * Math.sin(a)]); }
+    return p;
+  }
+  function ellPoly(cx, cy, rx, ry, n = 40) { const p = []; for (let i = 0; i < n; i++) { const a = i / n * TAU - Math.PI / 2; p.push([cx + rx * Math.cos(a), cy + ry * Math.sin(a)]); } return p; }
+  const polyXf = (p, ox, oy, rot = 0, sx = 1, sy = 1) => { const c = Math.cos(rot), s = Math.sin(rot); return p.map(([x, y]) => [ox + (x * sx) * c - (y * sy) * s, oy + (x * sx) * s + (y * sy) * c]); };
+
+  // Grain: a small tile of soft noise, laid over clay with 'overlay' so 50% grey leaves it alone.
+  const grainTile = (() => {
+    const c = document.createElement('canvas'); c.width = c.height = 96;
+    const g = c.getContext('2d'), img = g.createImageData(96, 96), r = mulberry(77);
+    const lo = new Float32Array(12 * 12).map(() => r());
+    for (let y = 0; y < 96; y++) for (let x = 0; x < 96; x++) {
+      const u = x / 8, v = y / 8, i0 = u | 0, j0 = v | 0, fu = u - i0, fv = v - j0;
+      const at = (i, j) => lo[(j % 12) * 12 + (i % 12)];
+      const s = lerp(lerp(at(i0, j0), at(i0 + 1, j0), fu), lerp(at(i0, j0 + 1), at(i0 + 1, j0 + 1), fu), fv);
+      const val = 128 + (s - .5) * 34 + (r() - .5) * 26;
+      const k = (y * 96 + x) * 4; img.data[k] = img.data[k + 1] = img.data[k + 2] = val; img.data[k + 3] = 255;
+    }
+    g.putImageData(img, 0, 0); return c;
+  })();
+  const grains = new WeakMap();
+  const grainFor = g => { let p = grains.get(g); if (!p) { p = g.createPattern(grainTile, 'repeat'); grains.set(g, p); } return p; };
+
+  function fingerprint(g, cx, cy, s, a, r) {
+    g.save(); g.translate(cx, cy); g.rotate(a); g.scale(1, .65 + r() * .3);
+    g.lineWidth = Math.max(.3, s * .06); g.lineCap = 'round';
+    for (let k = 1; k <= 6; k++) {
+      const rad = s * k / 6, a0 = r() * TAU, len = 1.6 + r() * 3.2, o = Math.max(.25, s * .04);
+      g.strokeStyle = 'rgba(40,16,4,.10)'; g.beginPath(); g.arc(o, o, rad, a0, a0 + len); g.stroke();
+      g.strokeStyle = 'rgba(255,250,240,.13)'; g.beginPath(); g.arc(-o, -o, rad, a0, a0 + len); g.stroke();
+    }
+    g.restore();
+  }
+  function clearShadow(g) { g.shadowColor = 'rgba(0,0,0,0)'; g.shadowBlur = 0; g.shadowOffsetX = 0; g.shadowOffsetY = 0; }
+
+  function clay(g, sh, col, o = {}) {
+    const [x, y, w, h] = sh.box, m = Math.min(w, h);
+    const d = o.depth ?? clamp(m * .22, 1.2, 14);
+    const r = mulberry(o.seed ?? (rnd() * 1e9 | 0));
+    g.save();
+    if (!o.inset && o.cast !== 0) {
+      const c = o.cast ?? 1;
+      g.shadowColor = `rgba(60,30,18,${.36 * (o.castA ?? 1)})`;
+      g.shadowBlur = d * 1.5 * c * SC; g.shadowOffsetX = d * .55 * c * SC; g.shadowOffsetY = d * .85 * c * SC;
+    }
+    g.fillStyle = col; g.fill(sh.path);
+    clearShadow(g);
+    g.clip(sh.path);
+    if (o.paint) o.paint(g, sh.box);
+    // broad form light
+    const gr = g.createLinearGradient(x, y, x + w * .45, y + h);
+    if (o.inset) { gr.addColorStop(0, 'rgba(25,10,4,.38)'); gr.addColorStop(.6, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(255,245,230,.08)'); }
+    else { gr.addColorStop(0, `rgba(255,248,232,${.2 * (o.lit ?? 1)})`); gr.addColorStop(.5, 'rgba(255,255,255,0)'); gr.addColorStop(1, `rgba(50,20,8,${.24 * (o.lit ?? 1)})`); }
+    g.fillStyle = gr; g.fillRect(x - 1, y - 1, w + 2, h + 2);
+    // rolled edges
+    const ring = new Path2D(); ring.rect(x - w - 60, y - h - 60, w * 3 + 120, h * 3 + 120); ring.addPath(sh.path);
+    const rim = (color, dx, dy, blur) => { g.shadowColor = color; g.shadowBlur = blur * SC; g.shadowOffsetX = dx * SC; g.shadowOffsetY = dy * SC; g.fillStyle = '#000'; g.fill(ring, 'evenodd'); };
+    const ra = o.rimA ?? 1;
+    if (o.inset) { rim(`rgba(20,8,2,${.65 * ra})`, d * .45, d * .65, d * 1.1); rim(`rgba(255,245,228,${.28 * ra})`, -d * .3, -d * .45, d * .8); }
+    else { rim(`rgba(40,14,4,${.55 * ra})`, -d * .35, -d * .55, d * 1.15); rim(`rgba(255,250,238,${.5 * ra})`, d * .3, d * .45, d * .9); }
+    clearShadow(g);
+    // grain
+    if (o.tex !== 0) {
+      g.globalCompositeOperation = 'overlay'; g.globalAlpha = o.tex ?? .55;
+      g.fillStyle = grainFor(g); g.fillRect(x, y, w, h);
+      g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1;
+    }
+    // thumbprints
+    const n = o.prints ?? Math.min(4, Math.round(w * h / 3000));
+    for (let i = 0; i < n; i++) fingerprint(g, x + w * (.12 + .76 * r()), y + h * (.12 + .76 * r()), clamp(m * .3, 3, 13), r() * TAU, r);
+    // satin sheen
+    const gl = o.gloss ?? .22;
+    if (gl > 0 && !o.inset) {
+      const hx = x + w * (o.hx ?? .3), hy = y + h * (o.hy ?? .24), hr = Math.max(w, h) * .38;
+      const rg = g.createRadialGradient(hx, hy, 0, hx, hy, hr);
+      rg.addColorStop(0, `rgba(255,255,250,${gl})`); rg.addColorStop(1, 'rgba(255,255,250,0)');
+      g.fillStyle = rg; g.fillRect(x, y, w, h);
+    }
+    g.restore();
+  }
+  // Clay piece from polygon in one go.
+  const piece = (g, p, col, seed, amt, o = {}) => clay(g, shape(lump(p, amt, seed)), col, { seed, ...o });
+
+  // A rolled clay coil (rails, string, poles, cornices).
+  function coil(g, pts, w, col, o = {}) {
+    const q = o.seed != null ? lump(pts, o.wob ?? w * .25, o.seed, false) : pts;
+    const p = smoothPath(q, false);
+    g.save(); g.lineCap = 'round'; g.lineJoin = 'round';
+    if (o.cast !== 0) { g.shadowColor = `rgba(60,30,18,${.3 * (o.cast ?? 1)})`; g.shadowBlur = w * 1.3 * SC; g.shadowOffsetX = w * .5 * SC; g.shadowOffsetY = w * .8 * SC; }
+    g.strokeStyle = shade(col, -.3); g.lineWidth = w; g.stroke(p);
+    clearShadow(g);
+    g.translate(-w * .09, -w * .11); g.strokeStyle = col; g.lineWidth = w * .76; g.stroke(p);
+    g.translate(-w * .09, -w * .1); g.strokeStyle = shade(col, .3); g.globalAlpha = .75; g.lineWidth = w * .32; g.stroke(p);
+    g.translate(-w * .03, -w * .03); g.strokeStyle = 'rgb(255,253,246)'; g.globalAlpha = o.gloss ?? .45; g.lineWidth = w * .1; g.stroke(p);
+    g.restore();
+  }
+  // A line scored into clay with a modelling tool: dark groove, lit lip below it.
+  function score(g, pts, w = 1.2, a = 1) {
+    const p = smoothPath(pts, false);
+    g.save(); g.lineCap = 'round'; g.lineWidth = w;
+    g.strokeStyle = `rgba(40,16,6,${.3 * a})`; g.stroke(p);
+    g.translate(w * .5, w * .7); g.strokeStyle = `rgba(255,248,235,${.3 * a})`; g.lineWidth = w * .8; g.stroke(p);
+    g.restore();
+  }
+  // A clay ball with a bead-like highlight (eyes, buttons, pots).
+  function ball(g, x, y, r, col, seed, o = {}) { piece(g, ellPoly(x, y, r, r * (o.sy ?? 1), 20), col, seed, r * .08, { depth: r * .5, prints: 0, gloss: o.gloss ?? .3, cast: o.cast ?? .6, tex: .4 }); }
+
+  /* =====================================================================
+     Sprites: the set pieces are modelled once, into offscreen canvases.
+     ===================================================================== */
+  function sprite(x, y, w, h, res, seed, fn) {
+    const c = document.createElement('canvas');
+    c.width = Math.ceil(w * res); c.height = Math.ceil(h * res);
+    const g = c.getContext('2d');
+    g.scale(res, res); g.translate(-x, -y);
+    const keep = SC; SC = res; rnd = mulberry(seed);
+    fn(g);
+    SC = keep;
+    return { c, x, y, w, h };
+  }
+
+  /* =====================================================================
+     The set, in world units (y down, pavement at y = 0, about 115 units
+     to the metre so Pascal stands ~170 tall).
+     ===================================================================== */
+  const BASE = -40; // where the facades meet the pavement
+  const FLOORS = [BASE, -300, -520, -740, -960];
+  const C = {
+    red: '#d8221f', string: '#e8dfcf',
+    zinc: '#8391a3', chimney: '#c46a4b', pot: '#b3553a', glass: '#3d4c5f', frame: '#f4ead8',
+    rail: '#2e3b3a', post: '#2f5a4a', lampGlass: '#f9e7a2',
+    walk: '#cfc6b6', curb: '#b6ad9e', cobble: ['#8e8f99', '#9a948d', '#838a93', '#a39b90', '#7f848c'],
+    skin: '#f2c29c', hair: '#5b3a26', coat: '#7e8a99', shorts: '#4a4757', sock: '#efeae0', shoe: '#2a2224', satchel: '#8c5a33',
+    pigeon: '#9aa1b0', pigeonD: '#6b7285', neck: '#4f9a8c', beak: '#e0a0a0',
+    cloud: '#fbfaf5', eiffel: '#8d8290',
+  };
+  const WALLS = ['#efd9b4', '#e8c9a0', '#dcd3c4', '#f0cfa6', '#e6d8bf', '#d9bfa0', '#eadfc3', '#f2dcc0', '#e2cdb0'];
+  const SHUTTERS = ['#5d86ad', '#7aa35f', '#b07a4f', '#7b6fa6', '#4d9290', '#c2674a'];
+  const AWNINGS = [['#3f7fbf', '#f4efe4'], ['#2f8f6f', '#f4efe4'], ['#d8a02a', '#f4efe4'], ['#c93c34', '#f4efe4']];
+  const BUILDINGS = [
+    { x: -1950, w: 340, roofH: 190 }, { x: -1610, w: 300, roofH: 215 }, { x: -1310, w: 360, roofH: 175, smoke: true },
+    { x: -950, w: 350, roofH: 205, smoke: true, laundryEnd: 'left' }, // the alley runs -600..-380
+    { x: -380, w: 320, roofH: 185, pigeon: true, laundryEnd: 'right', smoke: true },
+    { x: -60, w: 340, roofH: 200, bakery: true }, { x: 280, w: 330, roofH: 180 }, { x: 610, w: 360, roofH: 210 }, { x: 970, w: 340, roofH: 190 },
+  ];
+  BUILDINGS.forEach((b, i) => {
+    const r = mulberry(4100 + i * 97);
+    b.seed = 900 + i * 131;
+    b.wall = WALLS[i % WALLS.length];
+    b.shutter = SHUTTERS[(i * 4 + 1) % SHUTTERS.length];
+    b.awning = AWNINGS[i % AWNINGS.length];
+    b.cols = Math.max(2, Math.round(b.w / 110));
+    b.roofTop = FLOORS[4] - b.roofH;
+    b.chimneys = [];
+    const nCh = 1 + (r() < .55 ? 1 : 0);
+    for (let k = 0; k < nCh; k++) {
+      const cw = 42 + r() * 22, ch = 50 + r() * 40, cx = b.x + b.w * (nCh === 1 ? .3 + r() * .4 : k === 0 ? .12 + r() * .15 : .62 + r() * .18);
+      b.chimneys.push({ x: cx, w: cw, h: ch, top: b.roofTop - ch, pots: 2 + (r() * 2 | 0) });
+    }
+    b.balconies = [0, 1, 2].map(f => r() < .3);
+    b.boxes = Array.from({ length: 3 * b.cols }, () => r() < .35);
+  });
+  const PIGEON_B = BUILDINGS.find(b => b.pigeon);
+  const PIGEON_X = PIGEON_B.x + PIGEON_B.w / PIGEON_B.cols * 1.5 + 18, RAIL_Y = FLOORS[2] - 20 - 50;
+  PIGEON_B.balconies[1] = true;
+  const LAUNDRY = { x0: -606, x1: -374, y: -815, sag: 30 };
+  const lineY = x => { const u = (x - LAUNDRY.x0) / (LAUNDRY.x1 - LAUNDRY.x0); return LAUNDRY.y + LAUNDRY.sag * 4 * u * (1 - u); };
+  const POST_X = 170, BAR_Y = -400;
+  const SNAG = [104, BAR_Y - 5];          // where the string catches on the bar
+  const BALLOON = { rx: 56, ry: 64, L: 112 };
+  const REST = [SNAG[0] - 14, SNAG[1] - BALLOON.L - BALLOON.ry - 6];
+
+  function drawWindow(g, b, cx, yb, key, floor) {
+    const s = b.seed + key * 17, ww = 60, wh = floor === 4 ? 70 : 138, sill = yb - 26, top = sill - wh;
+    const r = mulberry(s);
+    if (floor < 4) {
+      for (const side of [-1, 1]) {
+        const sx = side < 0 ? cx - ww / 2 - 33 : cx + ww / 2 + 3;
+        piece(g, rrPoly(sx, top - 4, 30, wh + 8, 5), b.shutter, s + side, 2, { depth: 5, prints: 1 });
+        for (let k = 1; k < 9; k++) score(g, [[sx + 5, top + k * wh / 9], [sx + 25, top + k * wh / 9 + 2]], 1.1, .8);
+      }
+    }
+    piece(g, rrPoly(cx - ww / 2, top, ww, wh, floor === 4 ? 26 : 6), C.glass, s + 5, 1.5, { inset: true, depth: 8, prints: 0, tex: .35,
+      paint: (gg, [x, y, w, h]) => { gg.fillStyle = 'rgba(190,215,235,.35)'; gg.beginPath(); gg.moveTo(x + w * .15, y + h); gg.lineTo(x + w * .55, y); gg.lineTo(x + w * .75, y); gg.lineTo(x + w * .35, y + h); gg.fill(); } });
+    coil(g, [[cx, top + 2], [cx, sill - 2]], 4.5, C.frame, { seed: s + 6, wob: 1, cast: .5 });
+    if (floor < 4) coil(g, [[cx - ww / 2 + 2, top + wh * .42], [cx + ww / 2 - 2, top + wh * .42]], 4.5, C.frame, { seed: s + 7, wob: 1, cast: .5 });
+    piece(g, rrPoly(cx - ww / 2 - 8, sill - 3, ww + 16, 11, 4), shade(b.wall, -.06), s + 8, 1.2, { depth: 4, prints: 0 });
+    return { top, sill, r };
+  }
+  function drawBalcony(g, cx, sill, span, seed) {
+    piece(g, rrPoly(cx - span / 2 - 6, sill - 2, span + 12, 12, 4), '#cdbfa9', seed, 1.2, { depth: 5 });
+    const top = sill - 50;
+    for (let x = cx - span / 2 + 6; x <= cx + span / 2 - 5; x += 12) coil(g, [[x, sill - 2], [x + .5, top + 2]], 3.2, C.rail, { cast: .6 });
+    coil(g, [[cx - span / 2, top], [cx + span / 2, top]], 5, C.rail, { seed: seed + 1, wob: .8 });
+    coil(g, [[cx - span / 2, top + 26], [cx + span / 2, top + 26]], 3, C.rail, { cast: .5 });
+  }
+  function drawFlowerBox(g, cx, sill, seed) {
+    const r = mulberry(seed);
+    piece(g, rrPoly(cx - 34, sill - 18, 68, 16, 4), '#a0613f', seed, 1.2, { depth: 5, prints: 0 });
+    for (let k = 0; k < 7; k++) ball(g, cx - 28 + k * 9.5 + r() * 3, sill - 22 - r() * 6, 6 + r() * 2, '#4f8a3e', seed + 10 + k, { cast: .4 });
+    for (let k = 0; k < 6; k++) ball(g, cx - 26 + r() * 52, sill - 30 - r() * 8, 3.2, r() < .6 ? '#e2413c' : '#f07aa0', seed + 30 + k, { cast: .3, gloss: .4 });
+  }
+
+  function drawBuilding(g, b) {
+    const { x, w } = b, r = mulberry(b.seed), wallTop = FLOORS[4];
+    // chimneys first so the roof tucks in front of their base
+    b.chimneys.forEach((ch, k) => {
+      piece(g, rrPoly(ch.x, ch.top, ch.w, ch.h + 40, 4), C.chimney, b.seed + 40 + k, 2, { depth: 7 });
+      for (let j = 1; j < 4; j++) score(g, [[ch.x + 4, ch.top + j * 16], [ch.x + ch.w - 4, ch.top + j * 16 + 1]], 1.1, .7);
+      coil(g, [[ch.x - 3, ch.top + 2], [ch.x + ch.w + 3, ch.top + 2]], 8, shade(C.chimney, -.05), { seed: b.seed + 50 + k, wob: 1.2 });
+      for (let j = 0; j < ch.pots; j++) {
+        const px = ch.x + ch.w * (j + .5) / ch.pots - 6;
+        piece(g, rrPoly(px, ch.top - 26, 12, 26, 3), C.pot, b.seed + 60 + k * 5 + j, 1, { depth: 4, prints: 0 });
+        coil(g, [[px - 1, ch.top - 25], [px + 13, ch.top - 25]], 4, shade(C.pot, .1), { cast: .4 });
+      }
+    });
+    // mansard roof
+    const roofPts = [[x + 4, wallTop + 4], [x + 22, b.roofTop + 14], [x + 34, b.roofTop], [x + w - 34, b.roofTop], [x + w - 22, b.roofTop + 14], [x + w - 4, wallTop + 4]];
+    piece(g, roofPts, C.zinc, b.seed + 1, 3, { depth: 10, prints: 3, gloss: .28 });
+    for (let sx = x + 36; sx < x + w - 30; sx += 24) score(g, [[sx, b.roofTop + 6], [sx + (sx - x - w / 2) * .06, wallTop - 4]], 1.3, .7);
+    // dormers
+    for (let c = 0; c < b.cols; c++) {
+      const cx = x + w * (c + .5) / b.cols;
+      piece(g, rrPoly(cx - 40, wallTop - 128, 80, 116, 36), b.wall, b.seed + 70 + c, 2, { depth: 8 });
+      drawWindow(g, b, cx, wallTop - 20, 70 + c, 4);
+      piece(g, [[cx - 48, wallTop - 110], [cx, wallTop - 150], [cx + 48, wallTop - 110], [cx + 40, wallTop - 102], [cx, wallTop - 134], [cx - 40, wallTop - 102]], C.zinc, b.seed + 80 + c, 1.5, { depth: 5, prints: 0 });
+    }
+    // wall slab and the stone ground floor
+    piece(g, rrPoly(x, wallTop, w, BASE - wallTop + 2, 6), b.wall, b.seed + 2, 3.5, { depth: 12, prints: 5, rimA: .8 });
+    piece(g, rrPoly(x + 2, FLOORS[1], w - 4, BASE - FLOORS[1] + 2, 4), shade(b.wall, -.1), b.seed + 3, 2, { depth: 8, prints: 2, cast: .5 });
+    for (let yy = FLOORS[1] + 36; yy < BASE - 10; yy += 36) score(g, [[x + 6, yy], [x + w - 6, yy + 1.5]], 1.4, .8);
+    // cornices
+    coil(g, [[x - 6, wallTop + 2], [x + w + 6, wallTop + 2]], 15, shade(b.wall, .08), { seed: b.seed + 4, wob: 2 });
+    coil(g, [[x - 3, FLOORS[1]], [x + w + 3, FLOORS[1]]], 10, shade(b.wall, .05), { seed: b.seed + 5, wob: 1.5 });
+    for (const f of [FLOORS[2], FLOORS[3]]) coil(g, [[x, f], [x + w, f]], 5, shade(b.wall, .12), { seed: b.seed + f, wob: 1, cast: .5 });
+    // upper windows
+    for (let f = 1; f <= 3; f++) {
+      const full = b.balconies[f - 1] && f === 1 && !b.pigeon;
+      for (let c = 0; c < b.cols; c++) {
+        const cx = x + w * (c + .5) / b.cols;
+        const { sill } = drawWindow(g, b, cx, FLOORS[f], f * 10 + c, f);
+        const isPigeon = b.pigeon && f === 2 && c === 1;
+        if (!full && (isPigeon || (b.balconies[f - 1] && f === 2 && !b.pigeon && c !== 0))) drawBalcony(g, cx, sill + 4, 100, b.seed + 300 + f * 10 + c);
+        else if (!full && b.boxes[(f - 1) * b.cols + c] && !(b.pigeon && f === 2)) drawFlowerBox(g, cx, sill, b.seed + 400 + f * 10 + c);
+      }
+      if (full) drawBalcony(g, x + w / 2, FLOORS[f] - 22, w - 30, b.seed + 350);
+    }
+    // laundry brackets
+    if (b.laundryEnd === 'left') coil(g, [[x + w - 18, lineY(LAUNDRY.x0) + 4], [LAUNDRY.x0 + 4, lineY(LAUNDRY.x0)]], 5, C.rail);
+    if (b.laundryEnd === 'right') coil(g, [[x + 18, lineY(LAUNDRY.x1) + 4], [LAUNDRY.x1 - 4, lineY(LAUNDRY.x1)]], 5, C.rail);
+    // ground floor
+    const gf = FLOORS[1];
+    if (b.bakery) {
+      const [aw, aw2] = ['#c93c34', '#f7efe0'];
+      piece(g, rrPoly(x + 20, gf + 14, w - 40, 36, 8), '#355a4a', b.seed + 500, 2, { depth: 7, prints: 1 });
+      g.save(); g.font = `600 25px Fredoka, "Nunito", sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.shadowColor = 'rgba(30,12,4,.5)'; g.shadowBlur = 2 * SC; g.shadowOffsetX = 1.4 * SC; g.shadowOffsetY = 2 * SC;
+      g.fillStyle = '#f6e8c8'; g.fillText('BOULANGERIE', x + w / 2, gf + 33);
+      g.restore();
+      piece(g, rrPoly(x + 30, gf + 90, 170, 150, 6), C.glass, b.seed + 501, 2, { inset: true, depth: 10, prints: 0 });
+      const br = mulberry(b.seed + 502);
+      coil(g, [[x + 36, gf + 196], [x + 194, gf + 196]], 5, '#a57a52', { cast: .6 });
+      for (let k = 0; k < 4; k++) piece(g, ellPoly(x + 58 + k * 38, gf + 180, 17, 12, 18), k % 2 ? '#d49a4e' : '#c78a3e', b.seed + 510 + k, 1.5, { depth: 5, prints: 0, gloss: .3 });
+      for (let k = 0; k < 3; k++) { const bx = x + 60 + k * 50; piece(g, polyXf(ellPoly(0, 0, 36, 7, 18), bx + 10, gf + 140 + br() * 6, -.2), '#dba35a', b.seed + 520 + k, 1, { depth: 4, prints: 0 }); for (let j = -1; j <= 1; j++) score(g, [[bx + 10 + j * 12 - 4, gf + 138 + br() * 4], [bx + 10 + j * 12 + 4, gf + 136 + br() * 4]], 1.4, 1); }
+      // door
+      piece(g, rrPoly(x + w - 110, gf + 70, 72, BASE - gf - 68, 30), '#355a4a', b.seed + 530, 2, { depth: 8 });
+      piece(g, rrPoly(x + w - 98, gf + 88, 48, 80, 20), C.glass, b.seed + 531, 1, { inset: true, depth: 6, prints: 0 });
+      ball(g, x + w - 50, gf + 180, 4, '#d8b25a', b.seed + 532, { gloss: .6 });
+      // awning with scalloped valance
+      const ay = gf + 54, ah = 30, ap = [[x + 16, ay], [x + w - 16, ay]];
+      for (let k = 10; k >= 0; k--) { const sx = x + 16 + (w - 32) * k / 10; ap.push([sx, ay + ah + (k % 2 ? 10 : 0)]); }
+      piece(g, ap, aw, b.seed + 540, 1.5, { depth: 8, prints: 2, paint: (gg, [bx, by, bw, bh]) => { gg.fillStyle = aw2; for (let sx = bx; sx < bx + bw; sx += 32) gg.fillRect(sx, by, 16, bh); } });
+    } else {
+      const doorLeft = r() < .5, dx = doorLeft ? x + 30 : x + w - 102;
+      piece(g, rrPoly(dx, gf + 60, 72, BASE - gf - 58, 34), SHUTTERS[(b.seed >> 2) % SHUTTERS.length], b.seed + 600, 2, { depth: 8 });
+      for (let k = 0; k < 2; k++) piece(g, rrPoly(dx + 10 + k * 28, gf + 86, 24, 70, 8), shade(SHUTTERS[(b.seed >> 2) % SHUTTERS.length], -.15), b.seed + 601 + k, 1, { inset: true, depth: 4, prints: 0 });
+      ball(g, dx + (doorLeft ? 60 : 12), gf + 170, 4, '#d8b25a', b.seed + 604, { gloss: .6 });
+      const sx = doorLeft ? x + 124 : x + 26, sw = w - 150;
+      piece(g, rrPoly(sx, gf + 90, sw, 130, 6), C.glass, b.seed + 610, 2, { inset: true, depth: 9, prints: 0,
+        paint: (gg, [bx, by, bw, bh]) => { gg.fillStyle = 'rgba(190,215,235,.25)'; gg.fillRect(bx + bw * .2, by, bw * .12, bh); } });
+      const [a1, a2] = b.awning, ay = gf + 50;
+      const ap = [[sx - 10, ay], [sx + sw + 10, ay]];
+      for (let k = 8; k >= 0; k--) ap.push([sx - 10 + (sw + 20) * k / 8, ay + 34 + (k % 2 ? 9 : 0)]);
+      piece(g, ap, a1, b.seed + 620, 1.5, { depth: 8, prints: 1, paint: (gg, [bx, by, bw, bh]) => { gg.fillStyle = a2; for (let s = bx; s < bx + bw; s += 30) gg.fillRect(s, by, 15, bh); } });
+    }
+  }
+
+  function drawAlley(g) {
+    const x = LAUNDRY.x0 - 10, w = LAUNDRY.x1 - LAUNDRY.x0 + 20;
+    piece(g, rrPoly(x, FLOORS[4] - 40, w, BASE - FLOORS[4] + 42, 4), '#9c8672', 7001, 3, { depth: 10, prints: 3, lit: .6, cast: 0,
+      paint: (gg, [bx, by, bw, bh]) => { const gr = gg.createLinearGradient(bx, 0, bx + bw, 0); gr.addColorStop(0, 'rgba(30,14,6,.45)'); gr.addColorStop(.35, 'rgba(30,14,6,.1)'); gr.addColorStop(1, 'rgba(30,14,6,.25)'); gg.fillStyle = gr; gg.fillRect(bx, by, bw, bh); } });
+    for (const [wy, key] of [[FLOORS[1] - 40, 1], [FLOORS[3] - 20, 2]]) piece(g, rrPoly(x + w / 2 - 22, wy - 100, 44, 100, 18), '#2d3542', 7010 + key, 1, { inset: true, depth: 6, prints: 0 });
+    coil(g, [[x + w - 34, FLOORS[4] - 30], [x + w - 34, BASE]], 8, '#6d7480', { seed: 7020, wob: 1 });
+    piece(g, rrPoly(x + w / 2 - 36, BASE - 58, 72, 58, 10), '#6f7c6a', 7030, 2, { depth: 7 });
+  }
+
+  function drawStreet(g, x0, x1) {
+    piece(g, rrPoly(x0, BASE - 4, x1 - x0, 56, 4), C.walk, 8001, 3, { depth: 8, prints: 8, cast: 0,
+      paint: (gg, [bx, by, bw, bh]) => { const gr = gg.createLinearGradient(0, by, 0, by + bh); gr.addColorStop(0, 'rgba(40,20,8,.22)'); gr.addColorStop(.35, 'rgba(0,0,0,0)'); gg.fillStyle = gr; gg.fillRect(bx, by, bw, bh); } });
+    for (let sx = x0 + 60; sx < x1; sx += 140) score(g, [[sx, BASE + 2], [sx - 14, 8]], 1.5, .9);
+    piece(g, rrPoly(x0, 4, x1 - x0, 28, 3), C.curb, 8002, 2, { depth: 6, prints: 6 });
+    piece(g, rrPoly(x0, 30, x1 - x0, 260, 2), '#6f7078', 8003, 2, { depth: 6, prints: 0, cast: 0, lit: .4 });
+    const r = mulberry(8004);
+    for (let row = 0, yy = 38; yy < 300; row++, yy += 22 + row * 1.5) {
+      const ch = 18 + row * 1.5, cw = 30 + row * 3;
+      for (let xx = x0 + (row % 2 ? cw / 2 : 0) - 10; xx < x1; xx += cw + 3) {
+        piece(g, rrPoly(xx, yy, cw, ch, ch * .45), C.cobble[r() * C.cobble.length | 0], (8100 + row * 997 + xx) | 0, 1.6, { depth: ch * .3, prints: 0, cast: .5, tex: .5 });
+      }
+    }
+  }
+
+  function drawLamppost(g) {
+    const x = POST_X;
+    piece(g, [[x - 26, 0], [x - 20, -22], [x - 11, -40], [x - 7, -80], [x + 7, -80], [x + 11, -40], [x + 20, -22], [x + 26, 0]], C.post, 9001, 1.5, { depth: 8, gloss: .3 });
+    coil(g, [[x, -78], [x, -468]], 12, C.post, { seed: 9002, wob: 1, gloss: .5 });
+    for (const yy of [-120, -250, -330]) coil(g, [[x - 9, yy], [x + 9, yy]], 6, shade(C.post, .1), { cast: .5 });
+    coil(g, [[SNAG[0] - 4, BAR_Y], [x + 70, BAR_Y]], 8, C.post, { seed: 9003, wob: .8, gloss: .5 });
+    for (const ex of [SNAG[0] - 6, x + 72]) ball(g, ex, BAR_Y, 6, C.post, 9004 + ex | 0, { gloss: .5 });
+    piece(g, [[x - 30, -474], [x + 30, -474], [x + 24, -530], [x - 24, -530]], C.lampGlass, 9010, 1.2, { depth: 8, prints: 0, gloss: .5,
+      paint: (gg, [bx, by, bw, bh]) => { const rg = gg.createRadialGradient(bx + bw / 2, by + bh * .55, 2, bx + bw / 2, by + bh * .55, bw * .6); rg.addColorStop(0, 'rgba(255,255,230,.9)'); rg.addColorStop(1, 'rgba(255,220,120,0)'); gg.fillStyle = rg; gg.fillRect(bx, by, bw, bh); } });
+    coil(g, [[x, -474], [x, -530]], 4, C.post, { cast: .3 });
+    coil(g, [[x - 34, -472], [x + 34, -472]], 7, C.post, { cast: .6 });
+    piece(g, [[x - 36, -528], [x + 36, -528], [x + 10, -554], [x - 10, -554]], C.post, 9011, 1.2, { depth: 7 });
+    ball(g, x, -562, 7, C.post, 9012, { gloss: .5 });
+  }
+
+  function cloudPoly(cx, cy, R, seed) {
+    const r = mulberry(seed), k = 5 + (r() * 3 | 0), ph = r() * TAU, p = [];
+    for (let i = 0; i < 96; i++) {
+      const a = i / 96 * TAU, rr = R * (.8 + .26 * Math.pow(Math.abs(Math.sin(a * k / 2 + ph)), .45));
+      let px = cx + rr * Math.cos(a) * 1.7, py = cy + rr * Math.sin(a) * .85;
+      if (py > cy + R * .3) py = cy + R * .3 + (py - cy - R * .3) * .15;
+      p.push([px, py]);
+    }
+    return p;
+  }
+
+  function drawEiffel(g) {
+    g.scale(.72, .72);
+    const t = [[-130, 0], [-80, -150], [-46, -270], [-13, -430], [0, -485], [13, -430], [46, -270], [80, -150], [130, 0], [96, 0], [72, -58], [40, -92], [0, -102], [-40, -92], [-72, -58], [-96, 0]];
+    piece(g, t, C.eiffel, 5001, 2, { depth: 10, prints: 3 });
+    const X = (y0, y1, a0, a1) => { score(g, [[-a0, y0], [a1, y1]], 1.4); score(g, [[a0, y0], [-a1, y1]], 1.4); };
+    X(-160, -260, 72, 44); X(-280, -420, 40, 12); X(-12, -140, 110, 76);
+    piece(g, rrPoly(-100, -160, 200, 16, 5), shade(C.eiffel, -.08), 5002, 1, { depth: 5 });
+    piece(g, rrPoly(-58, -278, 116, 13, 5), shade(C.eiffel, -.08), 5003, 1, { depth: 4 });
+    piece(g, rrPoly(-20, -438, 40, 10, 4), shade(C.eiffel, -.08), 5004, 1, { depth: 3 });
+  }
+
+  function drawDistantRoofs(g, x0, x1, top) {
+    const r = mulberry(6001);
+    for (let x = x0; x < x1;) {
+      const w = 170 + r() * 110, h = r() * 90, y = top + h;
+      piece(g, [[x + 4, y + 70], [x + 18, y], [x + w - 18, y], [x + w - 4, y + 70]], '#9197b0', 6100 + x | 0, 3, { depth: 6, prints: 1, lit: .7, rimA: .7 });
+      piece(g, rrPoly(x, y + 66, w, 1400, 4), '#bdb2c4', 6200 + x | 0, 3, { depth: 6, prints: 2, lit: .7, rimA: .7 });
+      for (let fy = y + 110; fy < y + 900; fy += 150) for (let cx = x + 30; cx < x + w - 30; cx += 58) piece(g, rrPoly(cx, fy, 26, 60, 5), '#7d7896', 6300 + cx + fy | 0, 1, { inset: true, depth: 4, prints: 0, tex: .3 });
+      if (r() < .7) { const cx = x + 30 + r() * (w - 80); piece(g, rrPoly(cx, y - 40, 34, 50, 3), '#b77c69', 6400 + x | 0, 1.5, { depth: 5 }); }
+      x += w + 2;
+    }
+  }
+
+  function drawSky(g) {
+    const gr = g.createLinearGradient(0, 0, 0, 1400);
+    gr.addColorStop(0, '#78aedb'); gr.addColorStop(.45, '#a9d2ec'); gr.addColorStop(.8, '#e6e2d6'); gr.addColorStop(1, '#f3d9bf');
+    g.fillStyle = gr; g.fillRect(0, 0, 1400, 1400);
+    // clay smeared on with a thumb
+    const r = mulberry(3001);
+    g.lineCap = 'round';
+    for (let i = 0; i < 520; i++) {
+      const x = r() * 1400, y = r() * 1400, len = 40 + r() * 110, a = (r() - .5) * .8, w = 10 + r() * 22;
+      const light = r() < .55;
+      g.strokeStyle = light ? 'rgba(255,255,255,.06)' : 'rgba(30,60,110,.022)';
+      g.lineWidth = w; g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(x + len * .5, y - 12 + r() * 24, x + len * Math.cos(a), y + len * Math.sin(a)); g.stroke();
+    }
+    g.globalCompositeOperation = 'overlay'; g.globalAlpha = .35; g.fillStyle = grainFor(g); g.fillRect(0, 0, 1400, 1400); g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1;
+    for (let i = 0; i < 18; i++) fingerprint(g, r() * 1400, r() * 1400, 14, r() * TAU, r);
+    SC = 1;
+    piece(g, ellPoly(840, 120, 50, 50, 40), '#ffd66e', 3002, 2.5, { depth: 12, prints: 2, gloss: .35, castA: .6 });
+  }
+
+  /* =====================================================================
+     Camera and the moving parts
+     ===================================================================== */
+  const [s1, s2, s3, s4] = CUES.steps;
+  const camTrack = track([
+    [0, -980, -2000, 1.3], [3, -790, -1620, 1.0], [5, -630, -1260, .8], [7, -470, -1000, .95],
+    [8.3, -385, -845, 1.3], [CUES.pigeon, -205, -690, 1.45], [11.2, -130, -675, 1.3], [12.5, 0, -630, 1.05],
+    [CUES.snag, 80, -585, 1.25], [15.3, 110, -480, 1.0], [16.15, 40, -72, 1.8], [18.45, 40, -80, 1.8], [19.4, 110, -330, .95], [20, 112, -332, .95],
+  ]);
+  function camAt(t, shake = true) {
+    let [x, y, z] = camTrack(t);
+    if (shake && t >= CUES.snag && t < CUES.snag + .7) {
+      const k = Math.floor((t - CUES.snag) * FPS), a = 9 * Math.exp(-5 * (t - CUES.snag));
+      x += (k % 2 ? -1 : 1) * a * .6; y += (k % 2 ? 1 : -1) * a; z *= 1 + .03 * Math.exp(-6 * (t - CUES.snag));
+    }
+    return { x, y, z };
+  }
+  const placeAt = (p, t, sx, sy) => { const c = camAt(t, false), z = 1 + (c.z - 1) * p; return [(sx - W / 2) / z + c.x * p, (sy - H / 2) / z + c.y * p]; };
+
+  const balloonTrack = track([
+    [0, -1000, -2050], [3, -800, -1650], [5, -640, -1300], [7, -470, -990], [8.3, -358, -872],
+    [CUES.pigeon, -245, -735], [11.7, -80, -680], [13.2, 60, -610], [CUES.snag, REST[0] + 10, REST[1]],
+  ]);
+  function balloonAt(t) {
+    if (t < CUES.snag) {
+      const [x, y] = balloonTrack(t), [x2, y2] = balloonTrack(t + .1);
+      return { x: x + 6 * Math.sin(t * 1.3), y: y + 5 * Math.sin(t * 1.9), vx: (x2 - x) * 10, vy: (y2 - y) * 10, sx: 1, sy: 1, rot: clamp((x2 - x) * .02, -.12, .12) };
+    }
+    const u = t - CUES.snag, e = Math.exp(-1.2 * u);
+    const x = REST[0] + (10 + 26 * Math.sin(4.2 * u)) * e + 3 * Math.sin(t * 1.3);
+    const y = REST[1] - 16 * Math.exp(-2.2 * u) * Math.sin(6.5 * u + .4) + 4 * Math.sin(t * 1.7);
+    const sy = 1 + .16 * Math.exp(-2.6 * u) * Math.cos(9 * u);
+    return { x, y, vx: 0, vy: 0, sx: 1 / Math.sqrt(sy), sy, rot: .18 * e * Math.sin(4.2 * u) - .02 };
+  }
+
+  // Pascal's feet: an unsounded step to bring him into frame, then the four on the waltz.
+  const SWING = .4;
+  const STEPS = [[s1 - MUSIC_BEAT, 'R', -410, -250], [s1, 'L', -330, -170], [s2, 'R', -250, -90], [s3, 'L', -170, -10], [s4, 'R', -90, 50]];
+  function feetAt(t) {
+    const f = { L: { x: -330, lift: 0 }, R: { x: -410, lift: 0 } };
+    let bob = 0;
+    for (const [at, k, a, b] of STEPS) {
+      if (t >= at) f[k].x = b;
+      else if (t >= at - SWING) { const s = (t - at + SWING) / SWING; f[k].x = lerp(a, b, ease(s)); f[k].lift = Math.sin(Math.PI * s) * 17; bob = Math.sin(Math.PI * s) * 4; }
+    }
+    return { ...f, bob };
+  }
+
+  /* =====================================================================
+     Live pieces, re-modelled every frame (seeded by frame so they boil)
+     ===================================================================== */
+  let F = 0; // current frame
+  const fs = k => k * 1000 + F; // per-frame seed
+
+  function drawBalloon(t) {
+    const b = balloonAt(t), g = ctx;
+    const jx = (rnd() - .5) * 1.2, jy = (rnd() - .5) * 1.2;
+    // string
+    const knot = [b.x + jx + Math.sin(b.rot) * BALLOON.ry * b.sy, b.y + jy + Math.cos(b.rot) * BALLOON.ry * b.sy];
+    let tip, mid;
+    if (t < CUES.snag) {
+      const tx = clamp(-b.vx * .22, -60, 60), ty = BALLOON.L - Math.abs(tx) * .2;
+      tip = [knot[0] + tx + 6 * Math.sin(t * 2.3), knot[1] + ty];
+      mid = [knot[0] + tx * .35 + 10 * Math.sin(t * 3.1), knot[1] + ty * .5];
+    } else {
+      tip = SNAG.slice();
+      const slack = clamp(BALLOON.L - Math.hypot(tip[0] - knot[0], tip[1] - knot[1]), 0, 40);
+      mid = [lerp(knot[0], tip[0], .5) + slack * .8 + 3 * Math.sin(t * 2), lerp(knot[1], tip[1], .5)];
+    }
+    const sp = [knot, [lerp(knot[0], mid[0], .5), lerp(knot[1], mid[1], .5)], mid, [lerp(mid[0], tip[0], .5), lerp(mid[1], tip[1], .5)], tip];
+    coil(g, sp, 2.6, C.string, { cast: .6, gloss: .3 });
+    if (t >= CUES.snag) coil(g, [[SNAG[0] - 4, SNAG[1] - 2], [SNAG[0] + 3, SNAG[1] + 7], [SNAG[0] + 8, SNAG[1] - 1]], 3, C.string, { cast: .5 });
+    // the balloon: a glossy clay egg with a knot
+    const shp = [];
+    for (let i = 0; i < 48; i++) { const a = i / 48 * TAU - Math.PI / 2, pinch = 1 - .12 * Math.max(0, Math.sin(a)) ** 3; shp.push([Math.cos(a) * BALLOON.rx * pinch, Math.sin(a) * BALLOON.ry]); }
+    const body = polyXf(shp, b.x + jx, b.y + jy, b.rot, b.sx, b.sy);
+    piece(g, body, C.red, fs(1), 2.2, { depth: 16, prints: 2, gloss: .55, hx: .3, hy: .22, castA: 1.1 });
+    piece(g, polyXf([[-9, -4], [9, -4], [6, 9], [-6, 9]], knot[0], knot[1] + 2, b.rot), shade(C.red, -.1), fs(2), 1, { depth: 4, prints: 0, gloss: .4 });
+    // hard little glint, like varnish on the clay
+    g.save(); g.translate(b.x + jx, b.y + jy); g.rotate(b.rot);
+    g.fillStyle = 'rgba(255,255,255,.75)'; g.beginPath(); g.ellipse(-24, -34, 9, 5, -.7, 0, TAU); g.fill();
+    g.fillStyle = 'rgba(255,255,255,.5)'; g.beginPath(); g.ellipse(-10, -46, 3.5, 2.5, -.5, 0, TAU); g.fill();
+    g.restore();
+  }
+
+  function drawLaundry(t) {
+    const g = ctx, pts = [];
+    for (let k = 0; k <= 12; k++) { const x = lerp(LAUNDRY.x0, LAUNDRY.x1, k / 12); pts.push([x, lineY(x) + (k > 0 && k < 12 ? Math.sin(t * 2 + k) * 1.2 : 0)]); }
+    coil(g, pts, 3.4, C.string, { cast: .6 });
+    const items = [
+      { x: -572, kind: 'shirt', col: '#f3f0e6', w: 44 }, { x: -520, kind: 'dress', col: '#e98a9f', w: 42 },
+      { x: -468, kind: 'sock', col: '#5d86ad', w: 18 }, { x: -440, kind: 'sock', col: '#5d86ad', w: 18 }, { x: -404, kind: 'towel', col: '#f2cf5a', w: 36 },
+    ];
+    items.forEach((it, i) => {
+      const hy = lineY(it.x);
+      const brush = t > 8.05 ? Math.exp(-1.4 * (t - 8.05)) * Math.sin(6.5 * (t - 8.05)) * (i === 4 ? .55 : i >= 2 ? .25 : .08) : 0;
+      const a = .05 * Math.sin(t * 2.1 + i * 1.7) + brush;
+      let p;
+      const w = it.w;
+      if (it.kind === 'shirt') p = [[-w / 2, 0], [w / 2, 0], [w / 2 + 14, 14], [w / 2 + 6, 24], [w / 2 - 2, 18], [w / 2 - 2, 62], [-w / 2 + 2, 62], [-w / 2 + 2, 18], [-w / 2 - 6, 24], [-w / 2 - 14, 14]];
+      else if (it.kind === 'dress') p = [[-w / 2 + 6, 0], [w / 2 - 6, 0], [w / 2 - 4, 22], [w / 2 + 10, 70], [-w / 2 - 10, 70], [-w / 2 + 4, 22]];
+      else if (it.kind === 'sock') p = [[-w / 2, 0], [w / 2, 0], [w / 2, 36], [w / 2 + 14, 42], [w / 2 + 12, 54], [-w / 2, 52]];
+      else p = [[-w / 2, 0], [w / 2, 0], [w / 2 + 2, 66], [-w / 2 - 2, 66]];
+      const q = polyXf(p, it.x, hy + 2, a);
+      piece(g, q, it.col, fs(10 + i), 1.6, { depth: 6, prints: 1, cast: .8,
+        paint: it.kind === 'towel' ? (gg, [bx, by, bw, bh]) => { gg.fillStyle = 'rgba(216,34,31,.7)'; gg.fillRect(bx, by + bh * .72, bw, bh * .08); gg.fillRect(bx, by + bh * .84, bw, bh * .05); } : it.kind === 'shirt' ? (gg, [bx, by, bw, bh]) => { gg.fillStyle = 'rgba(93,134,173,.55)'; for (let s = 0; s < 4; s++) gg.fillRect(bx, by + bh * (.25 + s * .18), bw, bh * .06); } : null });
+      for (const px of it.kind === 'sock' ? [0] : [-w / 2 + 6, w / 2 - 6]) {
+        const [cx, cy] = polyXf([[px, 0]], it.x, hy, a)[0];
+        piece(g, rrPoly(cx - 3, cy - 7, 6, 13, 2), '#c69a6a', fs(20 + i * 3 + (px > 0)), .6, { depth: 2, prints: 0, cast: .5 });
+      }
+    });
+  }
+
+  function drawSmoke(t) {
+    const g = ctx;
+    BUILDINGS.forEach((b, bi) => {
+      if (!b.smoke) return;
+      const ch = b.chimneys[0], ox = ch.x + ch.w * .5, oy = ch.top - 28;
+      for (let k = 0; k < 8; k++) {
+        const born = (Math.floor(t / .75) - k) * .75 + bi * .17, age = t - born;
+        if (age < 0 || age > 4) continue;
+        const r0 = 6 + age * 9 - Math.max(0, age - 2.8) * 16, x = ox + age * 20 + Math.sin(born * 3 + age * 1.5) * 8, y = oy - age * 55;
+        if (r0 < 2) continue;
+        const r = mulberry(Math.round(born * 100) + bi);
+        piece(g, ellPoly(x, y, r0 * (1 + r() * .25), r0 * (.85 + r() * .2), 24), shade('#e4e2de', r() * .15), fs(40 + bi * 10 + k), r0 * .14, { depth: r0 * .35, prints: 0, cast: .6, gloss: .15 });
+      }
+    });
+  }
+
+  function drawPigeon(t) {
+    const g = ctx;
+    if (t > 12.6) return;
+    let x = PIGEON_X, y = RAIL_Y, dir = -1, sc = 1, fly = false, hop = 0, peck = 0;
+    if (t < CUES.pigeon) peck = Math.max(0, Math.sin(t * 3.2)) ** 6 * .35;
+    else if (t < CUES.flap) { const s = (t - CUES.pigeon) / (CUES.flap - CUES.pigeon); hop = Math.sin(Math.PI * clamp(s * 1.6, 0, 1)) * 16; dir = s > .3 ? 1 : -1; }
+    else { const u = t - CUES.flap; fly = true; dir = 1; x += 170 * u + 70 * u * u; y -= 140 * u + 60 * u * u; sc = 1 + .5 * u; }
+    y -= hop;
+    g.save(); g.translate(x + (rnd() - .5), y); g.scale(dir * sc, sc);
+    const wingUp = fly && F % 2 === 0;
+    if (!fly) coil(g, [[-2, -12], [-4, 0]], 3, '#d9828a', { cast: .5 }), coil(g, [[6, -12], [8, 0]], 3, '#d9828a', { cast: .5 });
+    else coil(g, [[-4, -10], [-16, -2]], 3, '#d9828a', { cast: .3 });
+    piece(g, [[-10, -24], [-42, -16], [-40, -10], [-8, -14]], C.pigeonD, fs(60), 1, { depth: 4, prints: 0 });
+    if (fly) piece(g, polyXf([[0, 0], [-26, -8], [-44, -2], [-30, 4], [0, 6]], -2, -28, wingUp ? 1.1 : -.4), C.pigeonD, fs(61), 1.2, { depth: 5, prints: 0 });
+    piece(g, ellPoly(0, -24, 22, 15, 30), C.pigeon, fs(62), 1.4, { depth: 9, prints: 1 });
+    g.save(); g.translate(14, -32); g.rotate(peck);
+    piece(g, ellPoly(0, -2, 8, 11, 20), C.neck, fs(63), .8, { depth: 4, prints: 0, gloss: .4, paint: (gg, [bx, by, bw, bh]) => { gg.fillStyle = 'rgba(140,80,160,.5)'; gg.fillRect(bx, by + bh * .5, bw, bh * .5); } });
+    ball(g, 4, -12, 9, C.pigeon, fs(64), { cast: .4 });
+    piece(g, [[11, -14], [21, -11], [11, -8]], C.beak, fs(65), .5, { depth: 2, prints: 0 });
+    ball(g, 7, -15, 2.8, '#e8872e', fs(66), { cast: 0 }); ball(g, 7.4, -15, 1.6, '#111', fs(67), { cast: 0, gloss: .8 });
+    g.restore();
+    if (fly) piece(g, polyXf([[0, 0], [-26, -8], [-46, -2], [-30, 5], [0, 7]], 2, -26, wingUp ? 1.35 : -.6), shade(C.pigeon, -.08), fs(68), 1.2, { depth: 6, prints: 0 });
+    else piece(g, [[8, -30], [-12, -32], [-26, -20], [-8, -16], [10, -20]], shade(C.pigeon, -.1), fs(69), 1, { depth: 5, prints: 0 });
+    g.restore();
+  }
+
+  function drawPascal(t) {
+    if (t < 15.6) return;
+    const g = ctx, ft = feetAt(t);
+    const hx = (ft.L.x + ft.R.x) / 2 + 12, hipY = -66 - ft.bob;
+    const look = ease((t - 18.6) / .8), walking = t < s4 + .05;
+    const breathe = walking ? 0 : Math.sin(t * 2.4) * 1.2;
+    g.save(); g.translate((rnd() - .5) * .8, 0);
+    // contact shadows
+    for (const f of [ft.L, ft.R]) { g.fillStyle = `rgba(50,25,12,${.3 - f.lift * .01})`; g.beginPath(); g.ellipse(f.x + 6, 4, 26 - f.lift * .4, 5, 0, 0, TAU); g.fill(); }
+    const leg = (f, dx, dark, k) => {
+      const ank = [f.x + 2, -15 - f.lift], hip = [hx + dx, hipY + 10];
+      const knee = [lerp(ank[0], hip[0], .55), lerp(ank[1], hip[1], .55)];
+      coil(g, [hip, knee], 16, dark ? shade(C.skin, -.04) : C.skin, { cast: .6 });
+      coil(g, [knee, ank], 16, dark ? shade(C.sock, -.05) : C.sock, { cast: .6 });
+      piece(g, rrPoly(f.x - 14, -16 - f.lift, 38, 16, 7.5), C.shoe, fs(100 + k), 1, { depth: 6, prints: 0, gloss: .55 });
+      coil(g, [[f.x - 13, -1 - f.lift], [f.x + 23, -1 - f.lift]], 3, '#16110f', { cast: .3 });
+    };
+    const swingArm = clamp((ft.R.x - ft.L.x) / 180, -1, 1) * 14;
+    // far arm
+    const shY = hipY - 56 + breathe;
+    coil(g, [[hx - 4, shY + 8], [hx - 4 - swingArm * .8, hipY - 8]], 10, shade(C.coat, -.15), { cast: .5 });
+    ball(g, hx - 4 - swingArm * .8, hipY - 5, 5.5, shade(C.skin, -.1), fs(110), { cast: .4 });
+    leg(ft.L, -6, true, 1);
+    piece(g, rrPoly(hx - 21, hipY - 14, 42, 32, 9), C.shorts, fs(111), 1, { depth: 6, prints: 0 });
+    leg(ft.R, 6, false, 2);
+    // satchel and strap
+    piece(g, rrPoly(hx - 34, hipY - 38, 18, 28, 5), C.satchel, fs(112), 1, { depth: 5, prints: 1 });
+    // coat
+    const coat = [[hx - 16, shY], [hx + 16, shY], [hx + 23, hipY + 2], [hx - 23, hipY + 2]];
+    piece(g, resample(coat, 4), C.coat, fs(113), 1.6, { depth: 10, prints: 2 });
+    coil(g, [[hx - 20, hipY - 34], [hx + 14, shY + 4]], 4, shade(C.satchel, -.1), { cast: .5 });
+    for (let k = 0; k < 3; k++) ball(g, hx + 9, shY + 16 + k * 14, 2.8, '#3a3440', fs(114 + k), { cast: .4, gloss: .5 });
+    piece(g, [[hx - 2, shY - 2], [hx + 14, shY - 2], [hx + 8, shY + 10]], shade(C.coat, .15), fs(118), .6, { depth: 3, prints: 0 });
+    // near arm; at the end it hangs still while he looks up
+    const handX = hx + 6 + swingArm, handY = hipY - 6;
+    coil(g, [[hx + 6, shY + 8], [handX, handY - 2]], 11, C.coat, { cast: .6 });
+    ball(g, handX, handY + 2, 6, C.skin, fs(119), { cast: .5 });
+    // head
+    const nx = hx + 2, ny = shY - 4;
+    coil(g, [[nx, shY + 2], [nx, ny - 4]], 10, C.skin, { cast: .3 });
+    g.save(); g.translate(nx, ny); g.rotate(-.32 * look + (walking ? Math.sin(t * 11) * .03 : 0));
+    const hcx = 2, hcy = -22;
+    piece(g, ellPoly(hcx - 4, hcy - 7, 27, 23, 36), C.hair, fs(120), 1.4, { depth: 8, prints: 1, gloss: .2 });
+    piece(g, ellPoly(hcx, hcy, 25, 24, 36), C.skin, fs(121), 1.1, { depth: 10, prints: 1, gloss: .25 });
+    // blush
+    const rg = g.createRadialGradient(hcx + 13, hcy + 8, 0, hcx + 13, hcy + 8, 8); rg.addColorStop(0, 'rgba(230,110,100,.35)'); rg.addColorStop(1, 'rgba(230,110,100,0)');
+    g.fillStyle = rg; g.fillRect(hcx + 3, hcy - 2, 20, 20);
+    piece(g, [[hcx - 20, hcy - 14], [hcx - 6, hcy - 25], [hcx + 14, hcy - 24], [hcx + 22, hcy - 12], [hcx + 12, hcy - 15], [hcx + 2, hcy - 11], [hcx - 12, hcy - 11]], C.hair, fs(122), 1.2, { depth: 5, prints: 0 });
+    ball(g, hcx - 7, hcy + 2, 5.5, shade(C.skin, -.05), fs(123), { cast: .4 });
+    // eyes: two white beads, pupils follow where he's looking
+    const blink = t > 19.62 && t < 19.72;
+    const px = lerp(2.2, 1.2, look), py = lerp(0, -3, look);
+    for (const [ex, er] of [[hcx + 9, 5.4], [hcx + 18, 6]]) {
+      if (blink) { coil(g, [[ex - er, hcy - 3], [ex + er, hcy - 3]], 2, '#3a2a22', { cast: 0 }); continue; }
+      piece(g, ellPoly(ex, hcy - 4, er, er * 1.2, 20), '#fbf8f2', fs(124 + ex | 0), .3, { depth: 3, prints: 0, gloss: .6, cast: .3 });
+      ball(g, ex + px, hcy - 4 + py, 2.6, '#16110f', fs(130 + ex | 0), { cast: 0, gloss: .2 });
+      g.fillStyle = '#fff'; g.beginPath(); g.arc(ex + px - .9, hcy - 5.2 + py, .9, 0, TAU); g.fill();
+    }
+    ball(g, hcx + 24, hcy + 4, 4, shade(C.skin, -.03), fs(140), { cast: .5 });
+    coil(g, [[hcx + 11, hcy + 12], [hcx + 15, hcy + 14 - look], [hcx + 19, hcy + 12]], 2.2, '#9b3b33', { cast: 0 });
+    g.restore();
+    g.restore();
+  }
+
+  /* =====================================================================
+     Frame
+     ===================================================================== */
+  let SPR = null;
+  function build() {
+    const S = {};
+    S.sky = sprite(0, 0, 1400, 1400, 1, 3000, drawSky);
+    const cloudDefs = [[.28, 0, 230, 190, 44], [.28, 0, 1060, 420, 36], [.42, 2, 480, 560, 52], [.6, 3, 1040, 250, 60], [.6, 5.5, 180, 150, 52], [.8, 0, 160, 610, 64], [1, 1.5, 1110, 520, 70], [1.35, .6, 980, 650, 92]];
+    S.clouds = cloudDefs.map(([p, t, sx, sy, R], i) => {
+      const [wx, wy] = placeAt(p, t, sx, sy);
+      const s = sprite(-R * 2.1, -R * 1.2, R * 4.4, R * 2.1, 1, 3100 + i, g => piece(g, cloudPoly(0, 0, R, 3200 + i), C.cloud, 3300 + i, R * .06, { depth: R * .4, prints: 3, gloss: .3, castA: .35, rimA: .5, lit: .6,
+        paint: (gg, [bx, by, bw, bh]) => { const gr = gg.createLinearGradient(0, by, 0, by + bh); gr.addColorStop(.5, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(110,140,190,.16)'); gg.fillStyle = gr; gg.fillRect(bx, by, bw, bh); } }));
+      return { p, wx, wy, s, drift: 7 + i * 1.5 };
+    });
+    const [ex, ey] = placeAt(.22, 4, 1030, 610);
+    S.eiffel = { p: .22, s: sprite(-150, -500, 300, 520, .8, 5000, drawEiffel), ox: ex, oy: ey };
+    const [, ry] = placeAt(.55, 5, 0, 420);
+    S.roofs = { p: .55, s: sprite(-1500, ry - 80, 2500, 1600, .55, 6000, g => drawDistantRoofs(g, -1480, 980, ry)) };
+    S.alley = sprite(LAUNDRY.x0 - 40, FLOORS[4] - 70, LAUNDRY.x1 - LAUNDRY.x0 + 80, BASE - FLOORS[4] + 90, 1.2, 7000, drawAlley);
+    S.buildings = BUILDINGS.map(b => sprite(b.x - 40, b.roofTop - 120, b.w + 80, BASE - b.roofTop + 170, 1.2, b.seed, g => drawBuilding(g, b)));
+    S.street = [sprite(-2000, BASE - 20, 3400, 360, 1.5, 8000, g => drawStreet(g, -2040, 1440))];
+    S.lamp = sprite(POST_X - 80, -600, 190, 620, 2, 9000, drawLamppost);
+    return S;
+  }
+
+  let layerZ = 1;
+  function layer(cam, p) { const z = 1 + (cam.z - 1) * p; layerZ = z; ctx.setTransform(z, 0, 0, z, W / 2 - cam.x * p * z, H / 2 - cam.y * p * z); SC = z; }
+  function blit(s, dx = 0, dy = 0) {
+    const m = ctx.getTransform(), x0 = (s.x + dx) * m.a + m.e, y0 = (s.y + dy) * m.d + m.f;
+    if (x0 > W || y0 > H || x0 + s.w * m.a < 0 || y0 + s.h * m.d < 0) return;
+    ctx.drawImage(s.c, s.x + dx, s.y + dy, s.w, s.h);
+  }
+  let vignette = null;
+  function makeVignette() {
+    const c = document.createElement('canvas'); c.width = W; c.height = H;
+    const g = c.getContext('2d'), rg = g.createRadialGradient(W / 2, H * .45, H * .35, W / 2, H / 2, W * .72);
+    rg.addColorStop(0, 'rgba(40,20,10,0)'); rg.addColorStop(1, 'rgba(40,20,10,.38)');
+    g.fillStyle = rg; g.fillRect(0, 0, W, H); return c;
+  }
+
+  function draw(f) {
+    F = f;
+    const t = f / FPS;
+    rnd = mulberry(f * 7919 + 13);
+    const cam = camAt(t);
+    // a stop-motion camera never sits perfectly still
+    cam.x += (rnd() - .5) * .5; cam.y += (rnd() - .5) * .5;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    const u = clamp((cam.y + 2000) / 1930, 0, 1);
+    ctx.drawImage(SPR.sky.c, -60, lerp(-20, -640, u), 1400, 1400);
+
+    layer(cam, SPR.eiffel.p); blit(SPR.eiffel.s, SPR.eiffel.ox, SPR.eiffel.oy);
+    const clouds = SPR.clouds;
+    for (const c of clouds) if (c.p < .5) { layer(cam, c.p); blit(c.s, c.wx + c.drift * t, c.wy); }
+    layer(cam, SPR.roofs.p); blit(SPR.roofs.s);
+    for (const c of clouds) if (c.p >= .5 && c.p <= 1) { layer(cam, c.p); blit(c.s, c.wx + c.drift * t, c.wy); }
+
+    layer(cam, 1);
+    blit(SPR.alley);
+    for (const s of SPR.buildings) blit(s);
+    drawSmoke(t);
+    drawLaundry(t);
+    drawPigeon(t);
+    for (const s of SPR.street) blit(s);
+    blit(SPR.lamp);
+    drawPascal(t);
+    drawBalloon(t);
+
+    for (const c of clouds) if (c.p > 1) { layer(cam, c.p); blit(c.s, c.wx + c.drift * t, c.wy); }
+
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.drawImage(vignette ||= makeVignette(), 0, 0);
+    // exposure flicker from frame to frame, like real stop-motion lights
+    const fl = (rnd() - .5) * .05;
+    ctx.fillStyle = fl > 0 ? `rgba(255,236,210,${fl})` : `rgba(30,15,5,${-fl})`;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  /* =====================================================================
+     Player: the waltz is rendered once, and while it plays the audio clock
+     drives the picture so the cues land on the frames.
+     ===================================================================== */
+  const playBtn = document.getElementById('play'), restartBtn = document.getElementById('restart');
+  const scrub = document.getElementById('scrub'), clock = document.getElementById('clock');
+  const beatList = document.getElementById('beats');
+  const fmt = s => `${Math.floor(s / 60)}:${(s % 60).toFixed(1).padStart(4, '0')}`;
+  const fmtRange = (a, b) => `${fmt(a).replace(/\.0$/, '')}–${fmt(b).replace(/\.0$/, '')}`;
+  beatList.innerHTML = BEATS.map((b, i) => `<li class="beat" data-i="${i}"><button type="button" data-t="${b.t}"><span class="t">${fmtRange(b.t, b.end)}</span><span class="d"><b>${b.name}.</b>${b.text}${b.cue ? ` <span class="cue">♪ ${b.cue}</span>` : ''}<span class="cam">${b.cam}</span></span></button></li>`).join('');
+
+  let playing = false, frame = 0, lastDrawn = -1, startAt = 0, startFrame = 0;
+  const listeners = new Set();
+  function show(n) {
+    frame = clamp(n, 0, FRAMES - 1);
+    if (SPR && frame !== lastDrawn) { draw(frame); lastDrawn = frame; }
+    scrub.value = frame;
+    const t = frame / FPS;
+    clock.textContent = `${fmt(t)} / 0:20`;
+    beatList.querySelectorAll('.beat').forEach((li, i) => li.classList.toggle('now', t >= BEATS[i].t && t < BEATS[i].end));
+    listeners.forEach(fn => { try { fn(t, frame); } catch (e) { /* listener errors stay out of the player */ } });
+  }
+
+  const soundBtn = document.getElementById('sound');
+  const sound = { on: !!THEME, ctx: null, buffer: null, rendering: null, src: null, ctxStart: 0 };
+  if (!THEME) soundBtn.hidden = true;
+  const renderMusic = () => sound.rendering ||= THEME.render(DURATION).then(b => (sound.buffer = b)).catch(e => { console.warn('music failed', e); sound.on = false; soundBtn.hidden = true; });
+  function startSound(fromSec) {
+    if (!sound.on || !sound.buffer) return false;
+    try {
+      sound.ctx ||= new (window.AudioContext || window.webkitAudioContext)();
+      if (sound.ctx.state === 'suspended') sound.ctx.resume();
+      const src = sound.ctx.createBufferSource();
+      src.buffer = sound.buffer;
+      src.connect(sound.ctx.destination);
+      sound.ctxStart = sound.ctx.currentTime + 0.06;
+      src.start(sound.ctxStart, fromSec);
+      sound.src = src;
+      return true;
+    } catch (e) { console.warn('sound failed', e); return false; }
+  }
+  function stopSound() { if (sound.src) { try { sound.src.stop(); } catch (e) { /* already stopped */ } sound.src = null; } }
+  const latency = () => sound.ctx ? (sound.ctx.outputLatency || sound.ctx.baseLatency || 0) : 0;
+
+  function tick(now) {
+    if (!playing) return;
+    const elapsed = sound.src ? Math.max(0, sound.ctx.currentTime - sound.ctxStart - latency()) : (now - startAt) / 1000;
+    const n = startFrame + Math.floor(elapsed * FPS);
+    if (n >= FRAMES - 1) {
+      show(FRAMES - 1);
+      sound.src = null; // let the last chord ring out
+      playing = false;
+      playBtn.textContent = 'Play again';
+      return;
+    }
+    show(n);
+    requestAnimationFrame(tick);
+  }
+  async function play() {
+    if (playing || !SPR) return;
+    if (frame >= FRAMES - 1) show(0);
+    playing = true;
+    playBtn.textContent = 'Pause';
+    if (sound.on && !sound.buffer) { playBtn.textContent = 'Tuning up…'; await renderMusic(); if (!playing) return; playBtn.textContent = 'Pause'; }
+    startFrame = frame; startAt = performance.now();
+    startSound(frame / FPS);
+    requestAnimationFrame(tick);
+  }
+  function pause() { playing = false; stopSound(); playBtn.textContent = 'Play'; }
+  function seek(sec, keepPlaying = playing) {
+    pause();
+    show(Math.round(sec * FPS));
+    if (keepPlaying) play();
+  }
+  soundBtn.addEventListener('click', () => {
+    sound.on = !sound.on;
+    soundBtn.setAttribute('aria-pressed', String(sound.on));
+    soundBtn.textContent = sound.on ? 'Sound on' : 'Sound off';
+    if (playing) seek(frame / FPS, true);
+  });
+  playBtn.addEventListener('click', () => playing ? pause() : play());
+  cv.addEventListener('click', () => playing ? pause() : play());
+  restartBtn.addEventListener('click', () => seek(0, true));
+  scrub.addEventListener('input', () => seek(+scrub.value / FPS, false));
+  beatList.addEventListener('click', e => { const b = e.target.closest('button[data-t]'); if (b) seek(+b.dataset.t, true); });
+  document.addEventListener('keydown', e => {
+    if (e.target.closest('input, button')) return;
+    if (e.code === 'Space') { e.preventDefault(); playing ? pause() : play(); }
+  });
+
+  window.clayScene = { duration: DURATION, fps: FPS, beats: BEATS, cues: CUES, play, pause, seek, get time() { return frame / FPS; }, get playing() { return playing; }, get ready() { return !!SPR; }, onFrame: fn => (listeners.add(fn), () => listeners.delete(fn)) };
+
+  const m = /^#t(\d+(?:\.\d+)?)$/.exec(location.hash);
+  const reduced = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const fontsReady = document.fonts ? Promise.race([document.fonts.load('600 25px Fredoka'), new Promise(r => setTimeout(r, 1500))]).catch(() => {}) : Promise.resolve();
+  fontsReady.then(() => {
+    // let the "Sculpting" note paint before the heavy build
+    requestAnimationFrame(() => setTimeout(() => {
+      SPR = build();
+      document.getElementById('loading').hidden = true;
+      lastDrawn = -1;
+      show(Math.round((m ? +m[1] : reduced ? 19.9 : 0) * FPS));
+    }, 30));
+  });
+  if (THEME) renderMusic();
+})();
+</script>
