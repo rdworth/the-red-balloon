@@ -140,12 +140,12 @@
   </section>
 </div>
 
-<script src="music/opening-theme.js"></script>
+<script src="music/opening-theme-sampled.js"></script>
 <script>
 (() => {
   'use strict';
   /* =====================================================================
-     Timing: 20 s, 12 drawings a second, synced to music/opening-theme.js
+     Timing: 20 s, 12 drawings a second, synced to music/opening-theme-sampled.js
      ===================================================================== */
   const DURATION = 20, FPS = 12, FRAMES = DURATION * FPS;
   const BEATS = [
@@ -156,7 +156,7 @@
     { t: 12.5, end: 16, name: 'Snag', text: "It sinks to the street and the string catches on the lamppost's ladder bar. The balloon stretches and bobs.", cam: 'spirals down with it, then a shake and a punch-in on the plink.', cue: 'plink 0:13.9' },
     { t: 16, end: 20, name: 'Shoes', text: "Pascal's shoes walk in on the beat and stop. He looks up at the balloon.", cam: 'drops down the post to pavement height, tracks the shoes, then cranes back to a low angle.', cue: 'four steps from 0:16.7' },
   ];
-  const THEME = window.OpeningTheme;
+  const THEME = window.OpeningThemeSampled;
   const MUSIC_BEAT = DURATION / 36;
   const CUES = {
     pigeon: THEME ? THEME.cueTime('pigeon', DURATION) : 10,

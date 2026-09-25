@@ -157,7 +157,7 @@
   </section>
 </div>
 
-<script src="music/opening-theme.js"></script>
+<script src="music/opening-theme-sampled.js"></script>
 <script>
 (() => {
   /* =====================================================================
@@ -172,9 +172,9 @@
     { t: 12.5, end: 16, name: 'Snag', text: 'It sinks to the street, the string snags on the lamppost arm, and it bobs to a stop.', cue: 'plink 0:13.9' },
     { t: 16, end: 20, name: 'Shoes', text: "The camera tilts down the post to the cobbles and Pascal's shoes step in on the beat. It pulls back to show him looking up at the balloon.", cue: 'four steps from 0:16.7' },
   ];
-  /* Sync points come from the waltz in music/opening-theme.js (12 bars of 3/4
+  /* Sync points come from the waltz in music/opening-theme-sampled.js (12 bars of 3/4
      across 20 s, so one beat is 5/9 s). The fallbacks are the same numbers. */
-  const THEME = window.OpeningTheme;
+  const THEME = window.OpeningThemeSampled;
   const MUSIC_BEAT = DURATION / 36;
   const CUES = {
     pigeon: THEME ? THEME.cueTime('pigeon', DURATION) : 10,          // two chirps: the pigeon hops
