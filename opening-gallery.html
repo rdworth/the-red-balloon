@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Opening Gallery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cabin+Sketch:wght@700&family=Patrick+Hand&display=swap">
+<style>
+  /* Same kraft-paper table as opening-scene.html. Single theme by choice. */
+  :root {
+    --kraft: #c4a574;
+    --kraft-dark: #a8895a;
+    --paper: #f4ecdb;
+    --pencil: #37302c;
+    --pencil-soft: #5e5046;
+    --balloon: #d42a22;
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  html, body { background: var(--kraft); color: var(--pencil); margin: 0; }
+  body {
+    font-family: "Patrick Hand", "Comic Sans MS", "Chalkboard SE", cursive;
+    font-size: 18px;
+    line-height: 1.4;
+    background-color: var(--kraft);
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(255,255,255,.08) 0 1px, transparent 2px),
+      radial-gradient(circle at 70% 80%, rgba(0,0,0,.06) 0 1px, transparent 2px);
+    background-size: 7px 7px, 11px 11px;
+  }
+
+  /* ---- the sticky player bar ---- */
+  .bar {
+    position: sticky; top: 0; z-index: 10;
+    background: var(--paper);
+    border-bottom: 2px solid var(--pencil);
+    box-shadow: 0 4px 12px rgba(60, 40, 15, .3);
+  }
+  .bar-in { max-width: 980px; margin: 0 auto; padding: 8px 16px 6px; display: flex; flex-direction: column; gap: 6px; }
+  .bar-top, .bar-row { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .bar-top { justify-content: space-between; }
+  .bar h1 {
+    margin: 0; font-family: "Cabin Sketch", "Comic Sans MS", cursive; font-weight: 700;
+    font-size: 24px; line-height: 1.1; min-width: 0;
+  }
+  .bar h1 .red { color: var(--balloon); }
+  .btn {
+    font: inherit; font-size: 17px; line-height: 1; color: var(--pencil);
+    background: #fffaf0; border: 2px solid var(--pencil); border-radius: 6px;
+    padding: 7px 12px; cursor: pointer; white-space: nowrap; flex: none;
+  }
+  .btn:hover { background: #fff; }
+  .btn.primary { background: var(--balloon); color: #fff; border-color: #7a1712; min-width: 6.4em; }
+  .btn:focus-visible, .scrub:focus-visible { outline: 3px solid var(--balloon); outline-offset: 2px; }
+  .timeline { flex: 1; min-width: 0; padding-top: 4px; }
+  .scrub { width: 100%; margin: 0; accent-color: var(--balloon); cursor: pointer; display: block; }
+  .ticks { position: relative; height: 16px; font-size: 13px; color: var(--pencil-soft); overflow: hidden; }
+  .ticks span { position: absolute; top: 0; white-space: nowrap; border-left: 1.5px solid currentColor; padding-left: 3px; line-height: 16px; }
+  .ticks span.now { color: var(--balloon); }
+  .clock { font-variant-numeric: tabular-nums; font-size: 17px; white-space: nowrap; flex: none; }
+  @media (max-width: 620px) {
+    .bar h1 { font-size: 20px; }
+    .btn { font-size: 16px; padding: 6px 9px; }
+    .bar-row { flex-wrap: wrap; row-gap: 4px; }
+    .timeline { flex-basis: 100%; order: 3; }
+    .clock { margin-left: auto; }
+    .ticks { font-size: 12px; }
+  }
+
+  /* ---- the six openings ---- */
+  main { max-width: 980px; margin: 0 auto; padding: 24px 16px 64px; display: flex; flex-direction: column; gap: 36px; }
+  .intro { margin: 0; max-width: 62ch; font-size: 19px; }
+  figure { margin: 0; display: flex; flex-direction: column; gap: 6px; }
+  figcaption { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  figcaption .n {
+    font-family: "Cabin Sketch", cursive; font-size: 17px; color: #fff; background: var(--pencil);
+    border-radius: 50%; width: 1.6em; height: 1.6em; display: inline-grid; place-items: center; flex: none;
+    transform: translateY(-2px);
+  }
+  figcaption h2 { margin: 0; font-family: "Cabin Sketch", "Comic Sans MS", cursive; font-weight: 700; font-size: 28px; line-height: 1.05; }
+  figcaption p { margin: 0; color: var(--pencil-soft); flex-basis: 100%; }
+  figcaption a { color: var(--pencil); font-size: 16px; margin-left: auto; }
+  .frame { position: relative; cursor: pointer; }
+  .frame iframe {
+    display: block; width: 100%; border: 0; background: transparent;
+    aspect-ratio: 16 / 9; /* replaced by the measured height once the page loads */
+    pointer-events: none; /* clicks drive the shared clock, never the opening's own sound */
+  }
+</style>
+
+<div class="bar" role="region" aria-label="Player for all six openings">
+  <div class="bar-in">
+    <div class="bar-top">
+      <h1>The Red <span class="red">Balloon</span> · six openings</h1>
+      <button class="btn" id="sound" type="button" aria-pressed="true">Sound on</button>
+    </div>
+    <div class="bar-row">
+      <button class="btn primary" id="play" type="button">Play all</button>
+      <button class="btn" id="restart" type="button">From the top</button>
+      <div class="timeline">
+        <input class="scrub" id="scrub" type="range" min="0" max="239" step="1" value="0" aria-label="Scrub all six openings together">
+        <div class="ticks" id="ticks" aria-hidden="true"></div>
+      </div>
+      <span class="clock" id="clock">0:00.0 / 0:20</span>
+    </div>
+  </div>
+</div>
+
+<main>
+  <p class="intro">Scene 1, told six ways, in the order they were made. One waltz plays for the whole page, and every opening follows it frame for frame, so the pigeon, the snag and Pascal's shoes all land together. Tap any picture to play or pause.</p>
+  <div id="list"></div>
+</main>
+
+<script src="music/opening-theme-sampled.js"></script>
+<script>
+(() => {
+  'use strict';
+  const DURATION = 20, FPS = 12, FRAMES = DURATION * FPS;
+  const OPENINGS = [
+    { file: 'opening-scene.html', name: 'Torn paper', text: 'The first version: torn craft paper, tape and colored pencil, cut out and shot like stop-motion.' },
+    { file: 'opening-3d.html', name: 'Marker in 3D', text: 'Shaky felt-tip marker, with the city built in 3D so the camera can swoop and circle.' },
+    { file: 'opening-photoreal.html', name: 'Photographed paper set', text: 'The paper version made to look photographed: paper fibre, torn white edges and real shadows.' },
+    { file: 'opening-pencil.html', name: 'Colored pencil', text: 'Dense directional pencil strokes and bold outlines on white paper; every line boils.' },
+    { file: 'opening-clay.html', name: 'Claymation', text: 'Still 2D, but every piece is modelled in plasticine, thumbprints and all.' },
+    { file: 'opening-pixel.html', name: 'Pixel art', text: 'Drawn at 256 by 144 and blown up five times, snapped to the pixel grid.' },
+  ];
+  const SCENE_KEYS = ['openingScene', 'opening3dScene', 'clayScene', 'pixelScene'];
+  const BEATS = [
+    { t: 0, name: 'Sky' }, { t: 3, name: 'Rooftops' }, { t: 7, name: 'Laundry' },
+    { t: 10, name: 'Pigeon' }, { t: 12.5, name: 'Snag' }, { t: 16, name: 'Shoes' },
+  ];
+  // Inside each frame, show only the picture: the page's own header, controls and shot list stay hidden.
+  const FRAME_CSS = `
+    html, body { background: transparent !important; background-image: none !important; overflow: hidden !important; }
+    body { margin: 0 !important; padding: 12px 10px 14px !important; min-height: 0 !important; }
+    .wrap { max-width: none !important; margin: 0 !important; gap: 0 !important; padding: 0 !important; }
+    .wrap > :not(.screen) { display: none !important; }
+    canvas { cursor: default !important; }`;
+
+  const $ = id => document.getElementById(id);
+  const playBtn = $('play'), restartBtn = $('restart'), soundBtn = $('sound'), scrub = $('scrub'), clock = $('clock'), ticks = $('ticks');
+  const fmt = s => `${Math.floor(s / 60)}:${(s % 60).toFixed(1).padStart(4, '0')}`;
+
+  ticks.innerHTML = BEATS.map(b => `<span style="left:${(b.t / DURATION) * 100}%">${b.t ? b.name : ''}</span>`).join('');
+  const tickEls = [...ticks.children];
+
+  /* ---- build the six frames ---- */
+  const items = OPENINGS.map((o, i) => {
+    const fig = document.createElement('figure');
+    fig.innerHTML = `<figcaption><span class="n">${i + 1}</span><h2>${o.name}</h2><a href="${o.file}" target="_blank" rel="noopener">Open on its own</a><p>${o.text}</p></figcaption><div class="frame"><iframe src="${o.file}" title="${o.name} opening" loading="eager"></iframe></div>`;
+    $('list').appendChild(fig);
+    const iframe = fig.querySelector('iframe');
+    const item = { iframe, scene: null, visible: true, shown: -1 };
+    iframe.addEventListener('load', () => attach(item));
+    fig.querySelector('.frame').addEventListener('click', () => playing ? pause() : play());
+    return item;
+  });
+
+  function attach(item) {
+    let doc;
+    try { doc = item.iframe.contentDocument; } catch (e) { return; }
+    if (!doc) return;
+    const style = doc.createElement('style');
+    style.textContent = FRAME_CSS;
+    doc.head ? doc.head.appendChild(style) : doc.documentElement.appendChild(style);
+    const screen = doc.querySelector('.screen');
+    const win = item.iframe.contentWindow;
+    // measure the picture, not the body: pages without a doctype stretch the body to the frame's height
+    const fit = () => { if (!screen) return; item.iframe.style.aspectRatio = 'auto'; item.iframe.style.height = Math.ceil(screen.getBoundingClientRect().bottom + 14) + 'px'; };
+    fit();
+    // the observer has to come from the frame's own window to watch an element inside it
+    if (screen && win.ResizeObserver) new win.ResizeObserver(fit).observe(screen);
+    item.scene = SCENE_KEYS.map(k => win[k]).find(s => s && typeof s.seek === 'function') || null;
+    item.shown = -1;
+    sync(true);
+  }
+
+  // Only redraw frames that are on screen; the rest catch up when scrolled to.
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(e => { const it = items.find(x => x.iframe === e.target); if (it) { it.visible = e.isIntersecting; if (it.visible) it.shown = -1; } });
+      sync(true);
+    }, { rootMargin: '200px 0px' });
+    items.forEach(it => io.observe(it.iframe));
+  }
+
+  /* ---- the one shared clock, and the one waltz ---- */
+  const THEME = window.OpeningThemeSampled;
+  const sound = { on: !!THEME, ctx: null, buffer: null, rendering: null, src: null, ctxStart: 0 };
+  if (!THEME) soundBtn.hidden = true;
+  const renderMusic = () => sound.rendering ||= THEME.render(DURATION).then(b => (sound.buffer = b)).catch(e => { console.warn('music failed', e); sound.on = false; soundBtn.hidden = true; });
+  function startSound(fromSec) {
+    if (!sound.on || !sound.buffer) return;
+    try {
+      sound.ctx ||= new (window.AudioContext || window.webkitAudioContext)();
+      if (sound.ctx.state === 'suspended') sound.ctx.resume();
+      const src = sound.ctx.createBufferSource();
+      src.buffer = sound.buffer;
+      src.connect(sound.ctx.destination);
+      sound.ctxStart = sound.ctx.currentTime + 0.06;
+      src.start(sound.ctxStart, fromSec);
+      sound.src = src;
+    } catch (e) { console.warn('sound failed', e); }
+  }
+  function stopSound() { if (sound.src) { try { sound.src.stop(); } catch (e) { /* already stopped */ } sound.src = null; } }
+  const latency = () => sound.ctx ? (sound.ctx.outputLatency || sound.ctx.baseLatency || 0) : 0;
+
+  let playing = false, frame = 0, startAt = 0, startFrame = 0;
+
+  // Push the shared frame into every visible opening. seek(t, false) draws that one frame and keeps
+  // the opening paused, so none of them ever starts its own copy of the waltz.
+  function sync(force) {
+    const t = frame / FPS;
+    for (const it of items) {
+      if (!it.scene || !it.visible) continue;
+      let at;
+      try { at = Math.round(it.scene.time * FPS); } catch (e) { continue; }
+      if (!force && it.shown === frame && at === frame) continue;
+      try { it.scene.seek(t, false); it.shown = frame; } catch (e) { /* a frame that fails stays where it was */ }
+    }
+  }
+  function show(n) {
+    frame = Math.max(0, Math.min(FRAMES - 1, n));
+    scrub.value = frame;
+    const t = frame / FPS;
+    clock.textContent = `${fmt(t)} / 0:20`;
+    tickEls.forEach((el, i) => el.classList.toggle('now', t >= BEATS[i].t && t < (BEATS[i + 1]?.t ?? DURATION)));
+    sync(false);
+  }
+  function tick(now) {
+    if (!playing) return;
+    const elapsed = sound.src ? Math.max(0, sound.ctx.currentTime - sound.ctxStart - latency()) : (now - startAt) / 1000;
+    const n = startFrame + Math.floor(elapsed * FPS);
+    if (n >= FRAMES - 1) {
+      show(FRAMES - 1);
+      sound.src = null; // let the last chord ring out
+      playing = false;
+      playBtn.textContent = 'Play again';
+      return;
+    }
+    show(n);
+    requestAnimationFrame(tick);
+  }
+  async function play() {
+    if (playing) return;
+    if (frame >= FRAMES - 1) show(0);
+    playing = true;
+    playBtn.textContent = 'Pause';
+    if (sound.on && !sound.buffer) { playBtn.textContent = 'Tuning up…'; await renderMusic(); if (!playing) return; playBtn.textContent = 'Pause'; }
+    startFrame = frame; startAt = performance.now();
+    startSound(frame / FPS);
+    requestAnimationFrame(tick);
+  }
+  function pause() { playing = false; stopSound(); playBtn.textContent = 'Play all'; }
+  function seek(sec, keepPlaying = playing) {
+    pause();
+    show(Math.round(sec * FPS));
+    if (keepPlaying) play();
+  }
+
+  playBtn.addEventListener('click', () => playing ? pause() : play());
+  restartBtn.addEventListener('click', () => seek(0, true));
+  scrub.addEventListener('input', () => seek(+scrub.value / FPS, false));
+  soundBtn.addEventListener('click', () => {
+    sound.on = !sound.on;
+    soundBtn.setAttribute('aria-pressed', String(sound.on));
+    soundBtn.textContent = sound.on ? 'Sound on' : 'Sound off';
+    if (playing) seek(frame / FPS, true);
+  });
+  document.addEventListener('keydown', e => {
+    if (e.target.closest('input, button, a')) return;
+    if (e.code === 'Space') { e.preventDefault(); playing ? pause() : play(); }
+  });
+  // Openings finish loading at their own pace and reset themselves when they do; keep pulling them back.
+  setInterval(() => { if (!playing) sync(false); }, 500);
+
+  window.galleryScene = { duration: DURATION, fps: FPS, play, pause, seek, get time() { return frame / FPS; }, get playing() { return playing; } };
+
+  show(0);
+  if (THEME) renderMusic();
+})();
+</script>
+</html>
