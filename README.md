@@ -4,6 +4,7 @@ A 2D stop-motion animation in JavaScript that retells a simplified version of Al
 
 ## Files
 
+- `index.html`: the home page. Six panels, one per opening, each with a still from its rooftop shot (`home/`), and a button to the gallery, marked desktop only.
 - `cover.html`: the cover art.
 - `storyboard.html`: the 20-frame storyboard, drawn from reusable paper pieces.
 - `opening-scene.html`: scene 1, a 20-second stop-motion opening (240 frames at 12 fps). The balloon drifts over the rooftops, snags on a lamppost, and Pascal's shoes step in. It plays to the waltz in `music/opening-theme-sampled.js`, and the pigeon, the lamppost snag and Pascal's footsteps land on the waltz's cues.
@@ -15,3 +16,7 @@ A 2D stop-motion animation in JavaScript that retells a simplified version of Al
 - `opening-pixel.html`: an alternate take on scene 1 in chunky pixel art. The picture is drawn at 256 by 144 and blown up five times, with flat daylight colors, hard one-pixel outlines and everything snapped to the pixel grid; it cuts to a close-up for the shoes instead of zooming. Same beats and cues, played to the sampled waltz; nothing visual is shared with the other versions.
 - `opening-gallery.html`: all six openings stacked on one page in the order they were made, under a sticky bar with one play/pause button and one timeline. The waltz plays once for the whole page and every opening follows its clock frame for frame. Each opening loads in a frame named `red-balloon-embed`, which `opening-embed.js` turns into a silent, picture-only view that follows the gallery's clock by message; opened on their own, the pages are unchanged.
 - `music/opening-theme-sampled.js`: the opening waltz that every version of scene 1 plays to, 12 bars of 3/4 over 20 seconds. The accordion, upright bass and marimba are recordings from the FluidR3 General MIDI soundfont, kept in `music/samples/` (see its README for the license). The pigeon's wing flaps and Pascal's footsteps are synthesized.
+
+## Running it
+
+The site is plain static HTML. `npm install`, then `npm run dev` serves it locally with Vite, and `npm run build` writes the site to `dist/`. Only the home page goes through Vite; `vite.config.js` copies every other page, `opening-embed.js`, `music/`, `pencil/` and `assets/` into `dist/` unchanged, so their relative paths and the gallery's frames keep working. `vercel.json` tells Vercel to build with Vite and serve `dist/`.
