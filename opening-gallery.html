@@ -87,7 +87,37 @@
     aspect-ratio: 16 / 9; /* replaced by the measured height once the page loads */
     pointer-events: none; /* clicks drive the shared clock, never the opening's own sound */
   }
+
+  /* ---- full-page cover until all six openings are drawn ---- */
+  .loader {
+    position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; padding: 16px;
+    background: var(--kraft);
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(255,255,255,.08) 0 1px, transparent 2px),
+      radial-gradient(circle at 70% 80%, rgba(0,0,0,.06) 0 1px, transparent 2px);
+    background-size: 7px 7px, 11px 11px;
+    transition: opacity .4s ease, visibility 0s linear .4s;
+  }
+  .loader.done { opacity: 0; visibility: hidden; }
+  .loader-in { display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; }
+  .loader svg { width: 64px; height: 110px; overflow: visible; animation: bob 2.4s ease-in-out infinite; }
+  @keyframes bob { 50% { transform: translateY(-10px) rotate(3deg); } }
+  .loader h2 { margin: 0; font-family: "Cabin Sketch", "Comic Sans MS", cursive; font-weight: 700; font-size: 30px; }
+  .loader p { margin: 0; color: var(--pencil-soft); font-variant-numeric: tabular-nums; }
+  .dots { display: flex; gap: 8px; }
+  .dots i { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--pencil); background: transparent; transition: background .2s; }
+  .dots i.on { background: var(--balloon); border-color: #7a1712; }
+  @media (prefers-reduced-motion: reduce) { .loader svg { animation: none; } .loader { transition: none; } }
 </style>
+
+<div class="loader" id="loader" role="status" aria-live="polite">
+  <div class="loader-in">
+    <svg viewBox="0 0 64 110" aria-hidden="true"><path d="M32 72 C28 84 38 92 31 108" fill="none" stroke="#37302c" stroke-width="2"/><path d="M32 4 C50 4 60 18 60 34 C60 52 46 66 34 70 L37 75 L27 75 L30 70 C18 66 4 52 4 34 C4 18 14 4 32 4 Z" fill="#d42a22" stroke="#7a1712" stroke-width="2"/><ellipse cx="20" cy="24" rx="5" ry="9" fill="#fff" opacity=".5" transform="rotate(20 20 24)"/></svg>
+    <h2>Setting up six openings</h2>
+    <div class="dots" id="dots"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <p id="loader-note">0 of 6 ready</p>
+  </div>
+</div>
 
 <div class="bar" role="region" aria-label="Player for all six openings">
   <div class="bar-in">
@@ -118,7 +148,7 @@
   'use strict';
   const DURATION = 20, FPS = 12, FRAMES = DURATION * FPS;
   const OPENINGS = [
-    { file: 'opening-scene.html', name: 'Torn paper', text: 'The first version: torn craft paper, tape and colored pencil, cut out and shot like stop-motion.' },
+    { file: 'opening-scene.html', name: 'Torn paper', text: 'The first version: torn craft paper and colored pencil, cut out and shot like stop-motion.' },
     { file: 'opening-3d.html', name: 'Marker in 3D', text: 'Shaky felt-tip marker, with the city built in 3D so the camera can swoop and circle.' },
     { file: 'opening-photoreal.html', name: 'Photographed paper set', text: 'The paper version made to look photographed: paper fibre, torn white edges and real shadows.' },
     { file: 'opening-pencil.html', name: 'Colored pencil', text: 'Dense directional pencil strokes and bold outlines on white paper; every line boils.' },
@@ -136,7 +166,8 @@
     body { margin: 0 !important; padding: 12px 10px 14px !important; min-height: 0 !important; }
     .wrap { max-width: none !important; margin: 0 !important; gap: 0 !important; padding: 0 !important; }
     .wrap > :not(.screen) { display: none !important; }
-    canvas { cursor: default !important; }`;
+    canvas { cursor: default !important; }
+    .tape { display: none !important; }`;
 
   const $ = id => document.getElementById(id);
   const playBtn = $('play'), restartBtn = $('restart'), soundBtn = $('sound'), scrub = $('scrub'), clock = $('clock'), ticks = $('ticks');
@@ -151,16 +182,20 @@
     fig.innerHTML = `<figcaption><span class="n">${i + 1}</span><h2>${o.name}</h2><a href="${o.file}" target="_blank" rel="noopener">Open on its own</a><p>${o.text}</p></figcaption><div class="frame"><iframe src="${o.file}" title="${o.name} opening" loading="eager"></iframe></div>`;
     $('list').appendChild(fig);
     const iframe = fig.querySelector('iframe');
-    const item = { iframe, scene: null, visible: true, shown: -1 };
+    const item = { iframe, file: o.file, scene: null, attached: false, ready: false, visible: true, shown: -1 };
     iframe.addEventListener('load', () => attach(item));
     fig.querySelector('.frame').addEventListener('click', () => playing ? pause() : play());
     return item;
   });
 
+  // Attach as soon as the opening's document is parsed (its scripts define the scene object),
+  // rather than waiting for every font and texture to finish.
   function attach(item) {
+    if (item.attached) return;
     let doc;
     try { doc = item.iframe.contentDocument; } catch (e) { return; }
-    if (!doc) return;
+    if (!doc || doc.readyState === 'loading' || !doc.URL.includes(item.file)) return;
+    item.attached = true;
     const style = doc.createElement('style');
     style.textContent = FRAME_CSS;
     doc.head ? doc.head.appendChild(style) : doc.documentElement.appendChild(style);
@@ -276,6 +311,29 @@
   setInterval(() => { if (!playing) sync(false); }, 500);
 
   window.galleryScene = { duration: DURATION, fps: FPS, play, pause, seek, get time() { return frame / FPS; }, get playing() { return playing; } };
+
+  /* ---- the loading cover ---- */
+  const loader = $('loader'), dots = [...$('dots').children], note = $('loader-note');
+  // An opening is ready once its scene exists and its own "cutting out the pieces" note has gone.
+  const isReady = it => {
+    if (!it.scene) return false;
+    if (typeof it.scene.ready === 'boolean') return it.scene.ready;
+    try { const l = it.iframe.contentDocument.getElementById('loading'); return !l || l.hidden; } catch (e) { return true; }
+  };
+  const t0 = performance.now();
+  const watch = setInterval(() => {
+    items.forEach(it => { attach(it); if (!it.ready && isReady(it)) { it.ready = true; it.shown = -1; } });
+    const n = items.filter(it => it.ready).length;
+    dots.forEach((d, i) => d.classList.toggle('on', i < n));
+    note.textContent = `${n} of ${items.length} ready`;
+    // give up waiting on a stuck opening after a minute rather than hiding the page forever
+    if (n === items.length || performance.now() - t0 > 60000) {
+      clearInterval(watch);
+      sync(true);
+      loader.classList.add('done');
+      loader.setAttribute('aria-busy', 'false');
+    }
+  }, 150);
 
   show(0);
   if (THEME) renderMusic();
