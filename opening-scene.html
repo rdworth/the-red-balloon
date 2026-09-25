@@ -170,7 +170,7 @@
     { t: 7, end: 10, name: 'Laundry', text: 'It dips between two buildings and brushes a flapping laundry line.' },
     { t: 10, end: 12.5, name: 'Pigeon', text: 'It passes a pigeon on a balcony rail. The pigeon chirps, then flaps off.', cue: 'chirp 0:10, wings 0:10.6' },
     { t: 12.5, end: 16, name: 'Snag', text: 'It sinks to the street, the string snags on the lamppost arm, and it bobs to a stop.', cue: 'plink 0:13.9' },
-    { t: 16, end: 20, name: 'Shoes', text: "The camera tilts down the post to the cobbles. Pascal's shoes step in on the beat and stop. Hold.", cue: 'four steps from 0:16.7' },
+    { t: 16, end: 20, name: 'Shoes', text: "The camera tilts down the post to the cobbles and Pascal's shoes step in on the beat. It pulls back to show him looking up at the balloon.", cue: 'four steps from 0:16.7' },
   ];
   /* Sync points come from the waltz in music/opening-theme.js (12 bars of 3/4
      across 20 s, so one beat is 5/9 s). The fallbacks are the same numbers. */
@@ -436,7 +436,7 @@
   {
     seed(504);
     const s = building(1330, GY, 230, 250, '#d8c29a', { lit: .1, shutter: '#6d5a7a', cols: 6 }) + building(1560, GY, 130, 236, '#e9dcc0', { lit: .1 });
-    glued('bldC', s, [[[1322, 615, 380, 225], 1.7], [[1322, 840, 380, 70], 3.2]]);
+    glued('bldC', s, [[[1322, 615, 380, 226], 1.7], [[1322, 840, 380, 70], 3.2]]);
   }
   /* ---- cobbles ---- */
   {
@@ -449,9 +449,9 @@
       arcs.push([[xx, y], [xx + 5, y - 2.8], [xx + 11, y]]);
     }
     s += pens(arcs, '#8a7a5a', .8, { single: true });
-    glued('street', s, [[[1240, 888, 350, 84], 3.4]]);
+    glued('street', s, [[[1080, 888, 680, 84], 1.2], [[1240, 888, 350, 84], 3.4]]);
   }
-  glued('lamp', (seed(506), lamp(LAMP.x, GY, LAMP.h, LAMP.bar)), [[[1370, 695, 60, 105], 1.9], [[1380, 800, 40, 106], 3.4]]);
+  glued('lamp', (seed(506), lamp(LAMP.x, GY, LAMP.h, LAMP.bar)), [[[1370, 695, 60, 106], 1.9], [[1380, 800, 40, 106], 3.4]]);
 
   /* ---- actors ---- */
   piece('balloon', [-26, -26, 52, 56], 1.8, 3, () => balloonPiece(BR));
@@ -509,6 +509,20 @@
   piece('legFar', [-6, -4, 12, 38], 3.8, 2, () => leg(true));
   piece('shoe', [-7, -9, 20, 12], 3.8, 2, () => shoe());
   piece('hem', [-21, -38, 36, 45], 3.8, 2, () => hem());
+  // his head, from the storyboard's person() at 1.3x, hinged at the neck so he can look up
+  const head = up => {
+    const H = ([x, y]) => [x * 1.3, (y + 57) * 1.3 - 13];
+    const eyeY = up ? -59.6 : -58.5;
+    return paper(poly([[-7.5, 1.5], [7.5, 1.5], [5.5, -3], [-5.5, -3]], .2), C.coatD, { rim: false }) +
+      paper(ell(0, -13, 10.4, 11.2, 16, .3), C.skin) +
+      paper(poly([[-8.6, -57], [-8, -63], [-3, -66.5], [3, -66.5], [8, -63], [8.6, -59], [4, -61.8], [-1, -61.3], [-5, -60]].map(H), .3), '#5b3a22', { rim: false }) +
+      [[2.8, eyeY], [6.4, eyeY]].map(H).map(([x, y]) => `<circle cx="${f(x)}" cy="${f(y)}" r="1.3" fill="${C.ink}"/>`).join('') +
+      `<circle cx="${f(H([6, -54.5])[0])}" cy="${f(H([6, -54.5])[1])}" r="2.3" fill="${C.blush}" opacity=".45"/>` +
+      (up ? `<circle cx="${f(H([4.5, -52.6])[0])}" cy="${f(H([4.5, -52.6])[1])}" r="1.7" fill="none" stroke="${C.ink}" stroke-width=".9"/>`
+          : pen([H([2.2, -53.8]), H([4.4, -52]), H([6.6, -53.8])], C.ink, 1, { single: true }));
+  };
+  piece('head', [-15, -30, 30, 35], 3.2, 2, () => head(false));
+  piece('headUp', [-15, -30, 30, 35], 3.2, 2, () => head(true));
 
   /* grain lives on the lens, and flickers like film */
   const grainJobs = [0, 1, 2].map(v => ({
@@ -547,7 +561,9 @@
     [0, 170, 450, 0], [3, 450, 500, 0], [5, 660, 590, 0], [7, 860, 650, Math.log(1.05)],
     [8.5, 1010, 690, Math.log(1.1)], [10, 1110, 712, Math.log(1.15)], [11.2, 1190, 726, Math.log(1.2)],
     [12.5, 1290, 730, Math.log(1.25)], [14, 1405, 740, Math.log(1.45)], [15.8, 1418, 752, Math.log(1.6)],
-    [17.1, 1384, 884, Math.log(3.3)], [18.2, 1382, 888, Math.log(3.6)], [20, 1382, 888, Math.log(3.6)],
+    [17.1, 1384, 884, Math.log(3.3)], [18.45, 1382, 888, Math.log(3.6)],
+    // then pull back to show all of Pascal looking up at the balloon on the lamppost
+    [19.7, 1398, 806, Math.log(.98)], [20, 1398, 806, Math.log(.98)],
   ]);
   const BALLOON_PATH = pchip([
     [0, -20, 430], [1.5, 170, 445], [3, 420, 470], [5, 650, 575], [6.2, 780, 604], [7, 880, 630],
@@ -733,6 +749,8 @@
         put(S.shoe, boil + (k === 'f' ? 1 : 0), l.foot[0], l.foot[1], { rot: l.rot });
       }
       put(S.hem, boil, w.hx + noise(boil, 9) * .15, w.hy);
+      const up = t > CUES.steps[3] + .35;   // after the last step he looks up at the balloon
+      put(up ? S.headUp : S.head, boil, w.hx + 1, w.hy - 34, { rot: up ? -.24 : 0 });
     }
 
     // film grain
