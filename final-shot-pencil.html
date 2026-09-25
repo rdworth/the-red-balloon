@@ -1,0 +1,66 @@
+<title>Pascal in Colored Pencil</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cabin+Sketch:wght@700&family=Patrick+Hand&display=swap">
+<style>
+  /* White drawing paper, one theme by choice (like the other scene pages). */
+  :root {
+    --paper: #fbf9f4;
+    --pencil: #2a2326;
+    --pencil-soft: #6a5f5c;
+    --balloon: #e8261b;
+    --blue: #2552c4;
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  html, body { background: var(--paper); color: var(--pencil); }
+  body {
+    font-family: "Patrick Hand", "Comic Sans MS", "Chalkboard SE", cursive;
+    font-size: 18px;
+    line-height: 1.4;
+    padding-inline: 16px;
+    padding-block: 28px 56px;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+  header { display: flex; flex-direction: column; gap: 6px; max-width: 65ch; }
+  .eyebrow { margin: 0; font-size: 15px; letter-spacing: .08em; text-transform: uppercase; color: var(--pencil-soft); }
+  h1 { margin: 0; font-family: "Cabin Sketch", "Comic Sans MS", cursive; font-size: clamp(34px, 6vw, 56px); line-height: 1.02; text-wrap: balance; }
+  h1 span { color: var(--balloon); }
+  .lede { margin: 0; color: var(--pencil-soft); }
+  canvas { display: block; width: 100%; max-width: 100%; height: auto; box-shadow: 0 1px 2px rgba(42, 35, 38, .08), 0 8px 28px rgba(42, 35, 38, .1); background: var(--paper); }
+  .bar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; }
+  button {
+    font: inherit; font-size: 19px; color: var(--paper); background: var(--blue);
+    border: 2px solid var(--pencil); border-radius: 4px 10px 6px 9px; padding: 6px 18px; cursor: pointer;
+  }
+  button:hover { background: #1b3f9e; }
+  button:focus-visible { outline: 3px solid var(--balloon); outline-offset: 3px; }
+  button:disabled { opacity: .6; cursor: progress; }
+  .note { margin: 0; color: var(--pencil-soft); font-size: 16px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Scene 1 · last shot · 0:20</p>
+    <h1>Pascal and the <span>red balloon</span>, in colored pencil</h1>
+    <p class="lede">The pull-back that ends the opening scene, redrawn with dense directional pencil strokes, bold dark outlines and bright colors on white paper. Every stroke is generated in code, so each redraw is a new pass of the pencil.</p>
+  </header>
+  <canvas id="shot" width="2080" role="img" aria-label="Colored pencil drawing: Pascal in a blue coat stands on the pavement beside a green Paris lamppost, looking up at a red balloon caught on the lamppost's bar, in front of apricot and sand-colored apartment blocks with blue and yellow windows."></canvas>
+  <div class="bar">
+    <button id="redraw" type="button">Draw it again</button>
+    <p class="note" id="note">Pencil pass 7</p>
+  </div>
+</div>
+
+<script src="pencil/final-shot.js"></script>
+<script>
+  const cv = document.getElementById('shot'), btn = document.getElementById('redraw'), note = document.getElementById('note');
+  let seed = 7;
+  function draw() {
+    btn.disabled = true; note.textContent = 'Drawing…';
+    // let the label paint before the (few-second) render blocks the page
+    setTimeout(() => { renderPencilShot(cv, seed); btn.disabled = false; note.textContent = 'Pencil pass ' + seed; }, 30);
+  }
+  btn.addEventListener('click', () => { seed = 1 + Math.floor(Math.random() * 9999); draw(); });
+  draw();
+</script>
