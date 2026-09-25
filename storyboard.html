@@ -1,0 +1,915 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Red Balloon Storyboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gochi+Hand&family=Patrick+Hand&display=swap">
+<style>
+  :root {
+    --board: #b88c5c;
+    --board-speck: #9f7446;
+    --board-light: #c99d6c;
+    --on-board: #2b2016;
+    --on-board-soft: #4a3826;
+    --card: #f6eedb;
+    --card-shadow: rgba(52, 33, 14, .38);
+    --ink: #2f2a26;
+    --ink-soft: #6a5b4b;
+    --red: #d7281d;
+    --tape: rgba(244, 226, 160, .78);
+    --tape-edge: rgba(190, 160, 90, .35);
+    --hand: 'Gochi Hand', 'Comic Sans MS', 'Chalkboard SE', cursive;
+    --body: 'Patrick Hand', 'Comic Sans MS', 'Chalkboard SE', cursive;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --board: #2d231b;
+      --board-speck: #3b2e23;
+      --board-light: #33281f;
+      --on-board: #f2e6d0;
+      --on-board-soft: #cdbb9f;
+      --card: #efe4cc;
+      --card-shadow: rgba(0, 0, 0, .55);
+      --tape: rgba(222, 200, 130, .7);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --board: #2d231b;
+    --board-speck: #3b2e23;
+    --board-light: #33281f;
+    --on-board: #f2e6d0;
+    --on-board-soft: #cdbb9f;
+    --card: #efe4cc;
+    --card-shadow: rgba(0, 0, 0, .55);
+    --tape: rgba(222, 200, 130, .7);
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background-color: var(--board);
+    background-image:
+      radial-gradient(circle at 20% 30%, var(--board-speck) 0 1.2px, transparent 1.6px),
+      radial-gradient(circle at 70% 80%, var(--board-light) 0 1.4px, transparent 1.8px),
+      radial-gradient(circle at 45% 60%, var(--board-speck) 0 .9px, transparent 1.3px);
+    background-size: 23px 19px, 31px 27px, 13px 17px;
+    color: var(--on-board);
+    font-family: var(--body);
+    font-size: 18px;
+    line-height: 1.4;
+  }
+  .wrap {
+    max-width: 1560px;
+    margin: 0 auto;
+    padding-inline: 16px;
+    padding-block: 40px 64px;
+  }
+
+  /* ---------- title ---------- */
+  .masthead {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 28px;
+    margin-bottom: 44px;
+  }
+  .masthead svg { width: 92px; height: auto; flex: none; }
+  h1 {
+    margin: 0;
+    font-family: var(--hand);
+    font-weight: 400;
+    font-size: clamp(40px, 7vw, 76px);
+    line-height: 1.15;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 .28em;
+  }
+  h1 .word { display: inline-flex; }
+  h1 .chip {
+    display: inline-block;
+    padding: .02em .14em .06em;
+    margin: 0 .02em;
+    color: #fbf6ea;
+    box-shadow: 2px 3px 0 rgba(40, 25, 10, .25);
+  }
+  .intro {
+    flex: 1 1 320px;
+    max-width: 52ch;
+    margin: 0;
+    color: var(--on-board-soft);
+    font-size: 19px;
+  }
+  .intro strong { color: var(--on-board); font-weight: 400; }
+
+  /* ---------- the board ---------- */
+  .board {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 44px 30px;
+  }
+  @media (min-width: 720px)  { .board { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 1180px) { .board { grid-template-columns: repeat(4, 1fr); } }
+
+  .frame {
+    position: relative;
+    background: var(--card);
+    color: var(--ink);
+    padding: 14px 14px 16px;
+    box-shadow: 3px 6px 14px var(--card-shadow);
+    transform: rotate(var(--tilt, 0deg));
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .frame::before {
+    content: "";
+    position: absolute;
+    top: -13px;
+    left: 50%;
+    width: 86px;
+    height: 24px;
+    margin-left: -43px;
+    background: var(--tape);
+    border-inline: 1px dashed var(--tape-edge);
+    transform: rotate(var(--tape-tilt, -3deg));
+    clip-path: polygon(0 8%, 6% 0, 12% 10%, 18% 0, 88% 2%, 94% 12%, 100% 4%, 97% 90%, 100% 100%, 90% 94%, 10% 100%, 4% 92%, 0 100%, 3% 50%);
+  }
+  .frame-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .num {
+    flex: none;
+    font-family: var(--hand);
+    font-size: 24px;
+    line-height: 1;
+    color: var(--red);
+    width: 38px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    border: 2px solid var(--red);
+    border-radius: 48% 52% 45% 55% / 55% 45% 55% 45%;
+    font-variant-numeric: tabular-nums;
+  }
+  .frame h2 {
+    margin: 0;
+    font-family: var(--hand);
+    font-weight: 400;
+    font-size: 23px;
+    line-height: 1.1;
+    text-wrap: balance;
+    flex: 1;
+  }
+  .shot {
+    flex: none;
+    font-size: 13px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    border-bottom: 1.5px solid currentColor;
+  }
+  .frame svg {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    aspect-ratio: 400 / 250;
+    background: #e9dfc6;
+    outline: 1.5px solid rgba(47, 42, 38, .55);
+    outline-offset: 0;
+  }
+  .cap { margin: 0; font-size: 18px; line-height: 1.35; }
+
+  .footer {
+    margin-top: 56px;
+    color: var(--on-board-soft);
+    font-size: 16px;
+    max-width: 70ch;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .frame { transition: transform .25s ease; }
+    .frame:hover { transform: rotate(0deg) scale(1.02); z-index: 1; }
+  }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs id="shared-defs">
+    <clipPath id="frameClip"><rect x="0" y="0" width="400" height="250"/></clipPath>
+    <!-- hand-cut paper: wobbly edge plus a soft glued-down shadow -->
+    <filter id="paper" x="-12%" y="-12%" width="124%" height="128%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.045" numOctaves="3" seed="3" result="t"/>
+      <feDisplacementMap in="SourceGraphic" in2="t" scale="4" xChannelSelector="R" yChannelSelector="G" result="d"/>
+      <feDropShadow in="d" dx="1.1" dy="1.6" stdDeviation="0.9" flood-color="#3b2a17" flood-opacity=".38"/>
+    </filter>
+    <!-- the pale fibrous rim you get from ripping paper -->
+    <filter id="rip" x="-30%" y="-30%" width="160%" height="160%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.22" numOctaves="2" seed="8" result="t"/>
+      <feDisplacementMap in="SourceGraphic" in2="t" scale="4.5" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <!-- colored pencil: a wavering line with gaps where the tooth of the paper shows -->
+    <filter id="pencil" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="11" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="2.2" xChannelSelector="R" yChannelSelector="G" result="d"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -2.2 1.85" result="grain"/>
+      <feComposite in="d" in2="grain" operator="in"/>
+    </filter>
+    <filter id="grain" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" seed="5" stitchTiles="stitch"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 .25  0 0 0 0 .19  0 0 0 0 .12  0 0 0 -1.6 1"/>
+    </filter>
+  </defs>
+</svg>
+
+<div class="wrap">
+  <header class="masthead">
+    <svg id="mast-balloon" viewBox="0 0 90 130" aria-hidden="true"></svg>
+    <h1 id="title" aria-label="The Red Balloon">The Red Balloon</h1>
+    <p class="intro"><strong>A storyboard in 20 frames</strong> for a paper-cutout stop-motion short, retelling Albert Lamorisse's 1956 film. A boy named Pascal finds a balloon that decides to be his friend.</p>
+  </header>
+
+  <ol class="board" id="board"></ol>
+
+  <p class="footer">Everything is drawn in the page itself: torn construction paper, colored pencil and a little glue, so each piece can later be moved frame by frame for the animation.</p>
+</div>
+
+<script>
+(() => {
+  /* ---------------- palette ---------------- */
+  const C = {
+    red: '#d7281d', redD: '#96160f',
+    ink: '#2f2a26', fiber: '#faf4e4',
+    skin: '#f0c6a0', blush: '#e88f86',
+    coat: '#7b8ea6', coatD: '#4e6078',
+    brown: '#6b4428', brownD: '#472b16',
+    stone: '#cdbf9f', stoneD: '#a18f6d',
+    slate: '#5d6772', slateD: '#3b434c',
+    ochre: '#dca44a', ochreD: '#a4712a',
+    green: '#79985a', greenD: '#4b6633',
+    blue: '#3c6db4', blueD: '#244a84',
+    yellow: '#f3c94c', yellowD: '#c99a25',
+    sky: '#c9dfec', skyD: '#9fc0d6',
+  };
+  const FACADES = ['#e7d6b1', '#d8c29a', '#e3c7a0', '#cdb897', '#e9dcc0', '#d6b88e'];
+  const BALLOONS = [
+    ['#f2c230', '#b8891a'], ['#3c6db4', '#244a84'], ['#6aa35a', '#40703a'],
+    ['#e9772d', '#a84f17'], ['#e58fb0', '#b25d80'], ['#7d5aa6', '#553a7a'],
+    ['#2f9a95', '#1c6b67'], ['#f4e27a', '#c2ad3e'],
+  ];
+
+  /* ---------------- seeded randomness so every reload looks the same ---------------- */
+  let rs = 1;
+  const seed = n => { rs = n * 7919 + 13; };
+  const rnd = () => { rs |= 0; rs = rs + 0x6D2B79F5 | 0; let t = Math.imul(rs ^ rs >>> 15, 1 | rs); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  const j = (v = 1) => (rnd() * 2 - 1) * v;
+  const f = n => (Math.round(n * 10) / 10).toString();
+
+  /* ---------------- shapes ---------------- */
+  const bbOf = pts => {
+    let a = Infinity, b = Infinity, c = -Infinity, d = -Infinity;
+    for (const [x, y] of pts) { a = Math.min(a, x); b = Math.min(b, y); c = Math.max(c, x); d = Math.max(d, y); }
+    return [a, b, c, d];
+  };
+  const poly = (pts, wob = 1.2) => {
+    const p = pts.map(([x, y]) => [x + j(wob), y + j(wob)]);
+    return { d: 'M' + p.map(([x, y]) => f(x) + ' ' + f(y)).join(' L') + ' Z', bb: bbOf(p) };
+  };
+  const rect = (x, y, w, h, wob = 1) => poly([[x, y], [x + w, y], [x + w, y + h], [x, y + h]], wob);
+  const ell = (cx, cy, rx, ry, n = 16, wob) => {
+    const pts = [];
+    for (let i = 0; i < n; i++) { const a = i / n * Math.PI * 2; pts.push([cx + Math.cos(a) * rx, cy + Math.sin(a) * ry]); }
+    return poly(pts, wob ?? Math.min(rx, ry) * 0.06);
+  };
+  const smooth = pts => {
+    if (pts.length < 3) return 'M' + pts.map(([x, y]) => f(x) + ' ' + f(y)).join(' L');
+    let d = `M${f(pts[0][0])} ${f(pts[0][1])}`;
+    for (let i = 1; i < pts.length - 1; i++) {
+      const mx = (pts[i][0] + pts[i + 1][0]) / 2, my = (pts[i][1] + pts[i + 1][1]) / 2;
+      d += ` Q${f(pts[i][0])} ${f(pts[i][1])} ${f(mx)} ${f(my)}`;
+    }
+    const l = pts[pts.length - 1];
+    return d + ` L${f(l[0])} ${f(l[1])}`;
+  };
+  // an invisible box so the filter region is never zero-width (a straight vertical stroke would vanish)
+  const padBox = ([a, b, c, d], p) => `<rect x="${f(a - p)}" y="${f(b - p)}" width="${f(c - a + 2 * p)}" height="${f(d - b + 2 * p)}" fill="none"/>`;
+
+  /* colored-pencil hatching, one pattern per color */
+  let defs = '';
+  const hatches = {};
+  const hatch = col => {
+    if (!hatches[col]) {
+      const id = 'h' + Object.keys(hatches).length;
+      hatches[col] = id;
+      const ang = 30 + Object.keys(hatches).length * 17 % 40;
+      defs += `<pattern id="${id}" width="4.5" height="4.5" patternUnits="userSpaceOnUse" patternTransform="rotate(${ang})"><path d="M0 .6 H4.5 M0 2.9 H3.2" stroke="${col}" stroke-width=".75" stroke-linecap="round"/></pattern>`;
+    }
+    return `url(#${hatches[col]})`;
+  };
+
+  /* a piece of torn paper */
+  const paper = (sh, fill, o = {}) => {
+    let s = `<g filter="url(#paper)"${o.op ? ` opacity="${o.op}"` : ''}>${padBox(sh.bb, 8)}`;
+    if (o.rim !== false) s += `<path d="${sh.d}" fill="${C.fiber}" stroke="${C.fiber}" stroke-width="${o.rimW || 2.6}" stroke-linejoin="round" filter="url(#rip)"/>`;
+    s += `<path d="${sh.d}" fill="${fill}"/>`;
+    if (o.hatch) s += `<path d="${sh.d}" fill="${hatch(o.hatch)}" opacity="${o.hop || .5}"/>`;
+    return s + '</g>';
+  };
+  /* colored pencil strokes: each line drawn twice, like a kid going over it again */
+  const pens = (lines, col = C.ink, w = 1.3, o = {}) => {
+    const all = lines.flat();
+    let s = `<g filter="url(#pencil)"${o.op ? ` opacity="${o.op}"` : ''}>${padBox(bbOf(all), w + 5)}`;
+    const attrs = `fill="none" stroke="${col}" stroke-linecap="round" stroke-linejoin="round"${o.dash ? ` stroke-dasharray="${o.dash}"` : ''}`;
+    for (const pts of lines) {
+      const p1 = pts.map(([x, y]) => [x + j(.35), y + j(.35)]);
+      s += `<path d="${smooth(p1)}" ${attrs} stroke-width="${w}"/>`;
+      if (!o.single) {
+        const p2 = pts.map(([x, y]) => [x + j(.9), y + j(.9)]);
+        s += `<path d="${smooth(p2)}" ${attrs} stroke-width="${f(w * .6)}" opacity=".55"/>`;
+      }
+    }
+    return s + '</g>';
+  };
+  const pen = (pts, col, w, o) => pens([pts], col, w, o);
+  const txt = (x, y, t, size = 12, col = C.ink, rot = 0, anchor = 'middle') =>
+    `<text x="${x}" y="${y}" font-family="Gochi Hand, Comic Sans MS, cursive" font-size="${size}" fill="${col}" text-anchor="${anchor}" transform="rotate(${rot} ${x} ${y})">${t}</text>`;
+
+  /* ---------------- scenery ---------------- */
+  const sky = (col = C.sky, shade = C.skyD) =>
+    `<rect x="-5" y="-5" width="410" height="260" fill="${col}"/><rect x="-5" y="-5" width="410" height="260" fill="${hatch(shade)}" opacity=".35"/>`;
+  const sun = (x, y, r = 18) => {
+    const rays = [];
+    for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI * 2 + .2; rays.push([[x + Math.cos(a) * (r + 5), y + Math.sin(a) * (r + 5)], [x + Math.cos(a) * (r + 13), y + Math.sin(a) * (r + 13)]]); }
+    return pens(rays, C.yellowD, 1.6) + paper(ell(x, y, r, r, 18), C.yellow, { hatch: C.yellowD, hop: .35 });
+  };
+  const cloud = (x, y, s = 1, col = '#fbf7ee') =>
+    paper(poly([[x - 30 * s, y + 8 * s], [x - 26 * s, y - 4 * s], [x - 14 * s, y - 9 * s], [x - 6 * s, y - 16 * s], [x + 8 * s, y - 15 * s], [x + 16 * s, y - 7 * s], [x + 28 * s, y - 5 * s], [x + 32 * s, y + 6 * s], [x + 20 * s, y + 11 * s], [x - 18 * s, y + 12 * s]], 1.5 * s), col);
+  const ground = (gy = 208, col = C.stone, dark = C.stoneD, cobbles = true) => {
+    let s = paper(poly([[-12, gy + j(2)], [90, gy + j(2)], [190, gy + j(2)], [290, gy + j(2)], [412, gy + j(2)], [412, 262], [-12, 262]], .6), col, { hatch: dark, hop: .3 });
+    if (cobbles) {
+      const ls = [];
+      for (let i = 0; i < 16; i++) { const x = rnd() * 390 + 5, y = gy + 9 + rnd() * 34; ls.push([[x, y], [x + 5, y - 2.5], [x + 11, y]]); }
+      s += pens(ls, dark, 1, { single: true });
+    }
+    return s;
+  };
+  const building = (x, gy, w, h, col, o = {}) => {
+    const top = gy - h;
+    let s = paper(rect(x, top, w, h + 4, .8), col, { hatch: o.shade || C.stoneD, hop: .28 });
+    if (o.roof !== false) {
+      s += paper(rect(x + w * .66, top - 26, 7, 14, .4), '#b0674a', { rim: false });
+      s += paper(poly([[x - 3, top + 2], [x + w + 3, top + 2], [x + w - 6, top - 15], [x + 6, top - 15]], .8), o.roofC || C.slate, { hatch: C.slateD, hop: .4 });
+    }
+    const nc = Math.max(1, Math.floor(w / 22)), nr = Math.max(1, Math.floor((h - 34) / 28));
+    const shut = [];
+    for (let r = 0; r < nr; r++) for (let c = 0; c < nc; c++) {
+      const wx = x + (w / nc) * (c + .5) - 5, wy = top + 10 + r * 28;
+      const lit = o.lit && rnd() < o.lit;
+      s += paper(rect(wx, wy, 10, 14, .5), lit ? C.yellow : '#4a576b', { rim: false });
+      shut.push([[wx - 3, wy], [wx - 3, wy + 14]], [[wx + 13, wy], [wx + 13, wy + 14]]);
+    }
+    s += pens(shut, o.shutter || '#557a6a', 1.6, { single: true });
+    if (o.door !== false) s += paper(rect(x + w / 2 - 6, gy - 22, 12, 22, .5), C.brown, { rim: false });
+    return s;
+  };
+  const city = (gy, o = {}) => {
+    let s = '', x = -14;
+    const cols = o.cols || FACADES;
+    while (x < 410) {
+      const w = 48 + rnd() * 40, h = (o.hMin ?? 78) + rnd() * ((o.hMax ?? 150) - (o.hMin ?? 78));
+      s += building(x, gy, w, h, cols[Math.floor(rnd() * cols.length)], o);
+      x += w + j(3);
+    }
+    return s;
+  };
+  const lamp = (x, gy, h = 118) =>
+    paper(poly([[x - 7, gy], [x + 7, gy], [x + 4, gy - 14], [x - 4, gy - 14]], .4), '#2e4136', { rim: false }) +
+    pens([[[x, gy - 10], [x + .5, gy - h / 2], [x, gy - h]], [[x, gy - h + 14], [x + 20, gy - h + 14]]], '#2e4136', 3.8) +
+    paper(poly([[x - 8, gy - h], [x + 8, gy - h], [x + 5, gy - h - 16], [x - 5, gy - h - 16]], .4), '#f3d77a', { hatch: C.yellowD }) +
+    paper(poly([[x - 9, gy - h - 15], [x + 9, gy - h - 15], [x, gy - h - 24]], .3), '#2e4136', { rim: false });
+  const tree = (x, gy, s = 1) =>
+    pen([[x, gy], [x + j(2), gy - 40 * s]], C.brown, 5 * s) +
+    paper(ell(x - 12 * s, gy - 48 * s, 20 * s, 17 * s, 12), C.green, { hatch: C.greenD }) +
+    paper(ell(x + 12 * s, gy - 54 * s, 19 * s, 18 * s, 12), '#8aab62', { hatch: C.greenD }) +
+    paper(ell(x, gy - 68 * s, 18 * s, 15 * s, 12), C.green, { hatch: C.greenD });
+  const rain = (n = 70, col = '#56748c') => {
+    const ls = [];
+    for (let i = 0; i < n; i++) { const x = rnd() * 420, y = rnd() * 240 - 10; ls.push([[x, y], [x - 4, y + 12]]); }
+    return pens(ls, col, .9, { single: true, op: .8 });
+  };
+  const stone = (x, y, dx = -1) =>
+    paper(ell(x, y, 4, 3.2, 7, .6), '#8a8478', { rim: false }) +
+    pens([[[x - dx * 7, y - 2], [x - dx * 16, y - 3]], [[x - dx * 7, y + 2], [x - dx * 14, y + 3]]], C.ink, .8, { single: true });
+  const speed = (x, y, n = 3, len = 18, dx = -1) => {
+    const ls = [];
+    for (let i = 0; i < n; i++) ls.push([[x, y + i * 8 + j(2)], [x + dx * len * (.6 + rnd() * .5), y + i * 8 + j(2)]]);
+    return pens(ls, C.ink, 1, { single: true, op: .8 });
+  };
+
+  /* ---------------- balloons ---------------- */
+  const balloon = (cx, cy, r = 16, col = C.red, colD = C.redD, to = null, o = {}) => {
+    let s = '';
+    const ky = cy + r * 1.12;
+    if (o.string !== false) {
+      const end = to || [cx + j(5), ky + r * 2.4];
+      const sl = o.slack ?? 5;
+      s += pen([[cx, ky + 2], [(cx + end[0]) / 2 + sl, (ky + end[1]) / 2 - 2], [end[0], end[1]]], C.ink, .9, { single: true });
+    }
+    s += paper(ell(cx, cy, r, r * 1.12, 20, r * .025), col, { hatch: colD, hop: .45 });
+    s += paper(poly([[cx - 2.6, ky + 3], [cx + 2.6, ky + 3], [cx, ky - 1]], .2), colD, { rim: false });
+    s += paper(ell(cx - r * .38, cy - r * .42, r * .18, r * .3, 10, .2), '#fdeee2', { rim: false, op: .85 });
+    return s;
+  };
+
+  /* ---------------- people ---------------- */
+  // arm poses for the near arm, in a figure's own coordinates (feet at 0,0, facing right)
+  const ARMS = {
+    down: [[7, -46], [11, -37], [12, -29]],
+    up: [[7, -46], [12, -57], [14, -68]],
+    forward: [[7, -46], [16, -43], [24, -44]],
+    wave: [[7, -46], [15, -52], [19, -62]],
+    low: [[7, -46], [14, -38], [20, -34]],
+    back: [[7, -46], [3, -38], [-3, -32]],
+  };
+  const person = o => {
+    const { x, y, s = 1, dir = 1, coat = C.coat, coatD = C.coatD, hair = C.brown, skin = C.skin,
+      hat = null, hatC = C.ink, dress = false, long = false, la = 'down', ra = 'down', walk = false,
+      run = false, mood = 'smile', bag = false, bun = false, stache = false, tear = false, pants = '#3f4652' } = o;
+    let g = '';
+    const legL = run ? [[-3, -23], [-10, -12], [-16, -7]] : walk ? [[-3, -23], [-9, -1]] : [[-3, -23], [-4, -1]];
+    const legR = run ? [[3, -23], [9, -11], [13, -1]] : walk ? [[3, -23], [8, -1]] : [[3, -23], [4, -1]];
+    g += pens([legL, legR], '#3a3430', 2.6);
+    const fL = legL.at(-1), fR = legR.at(-1);
+    g += paper(ell(fL[0] - 1, fL[1], 4, 2.3, 8, .2), C.ink, { rim: false }) + paper(ell(fR[0] + 1.5, fR[1], 4.3, 2.3, 8, .2), C.ink, { rim: false });
+    const armL = ARMS[la].map(([ax, ay]) => [-ax, ay]);
+    g += pens([armL], coatD, 3.2) + `<circle cx="${armL[2][0]}" cy="${armL[2][1]}" r="2" fill="${skin}"/>`;
+    if (dress) {
+      g += paper(poly([[-7, -48], [7, -48], [13, -19], [-13, -19]], .6), coat, { hatch: coatD });
+    } else {
+      if (!long) g += paper(rect(-8, -28, 16, 7, .5), pants, { rim: false });
+      g += paper(poly([[-8, -48], [8, -48], [long ? 12 : 10, long ? -15 : -25], [long ? -12 : -10, long ? -15 : -25]], .6), coat, { hatch: coatD });
+      g += `<circle cx="1.5" cy="-42" r=".9" fill="${C.ink}"/><circle cx="1.5" cy="-36" r=".9" fill="${C.ink}"/>`;
+    }
+    if (bag) g += pen([[-9, -41], [6, -48]], C.brownD, 1.4, { single: true }) + paper(rect(-15, -41, 8, 10, .4), '#8a5a33', { hatch: C.brownD, rim: false });
+    if (bun) g += paper(ell(-8, -63, 4.5, 4.5, 10, .3), hair, { rim: false });
+    g += paper(ell(0, -57, 8, 8.6, 14, .35), skin);
+    g += paper(poly([[-8.6, -57], [-8, -63], [-3, -66.5], [3, -66.5], [8, -63], [8.6, -59], [4, -61.8], [-1, -61.3], [-5, -60]], .35), hair, { rim: false });
+    if (hat === 'cap') g += paper(poly([[-8.5, -61], [-7, -68], [6, -68.5], [8.5, -61]], .3), hatC, { rim: false }) + paper(poly([[6, -62], [15, -61.5], [14, -59.6], [6, -60]], .2), hatC, { rim: false });
+    if (hat === 'bowler') g += paper(ell(0, -65, 7.4, 5.8, 12, .2), hatC, { rim: false }) + paper(rect(-11, -62.5, 22, 2.4, .2), hatC, { rim: false });
+    if (hat === 'beret') g += paper(ell(1.5, -65, 10, 3.8, 12, .2), hatC, { rim: false });
+    g += `<circle cx="2.8" cy="-58.5" r="1" fill="${C.ink}"/><circle cx="6.4" cy="-58.5" r="1" fill="${C.ink}"/>`;
+    g += `<circle cx="6" cy="-54.5" r="1.8" fill="${C.blush}" opacity=".45"/>`;
+    if (mood === 'smile') g += pen([[2.2, -53.8], [4.4, -52], [6.6, -53.8]], C.ink, .8, { single: true });
+    if (mood === 'sad') g += pen([[2.2, -51.8], [4.4, -53.4], [6.6, -51.8]], C.ink, .8, { single: true });
+    if (mood === 'o') g += `<circle cx="4.5" cy="-52.6" r="1.4" fill="none" stroke="${C.ink}" stroke-width=".7"/>`;
+    if (mood === 'angry') g += pens([[[1.4, -61.4], [4, -60.2]], [[5.2, -60.2], [7.8, -61.6]], [[2.4, -52.4], [6.4, -52.8]]], C.ink, .8, { single: true });
+    if (stache) g += paper(poly([[.5, -54.6], [4.5, -56], [8.6, -54.4], [7.5, -53], [4.5, -54.3], [1.5, -53]], .15), '#4a3a30', { rim: false });
+    if (tear) g += paper(poly([[7, -57], [8.5, -54], [7, -52.8], [5.6, -54]], .1), '#7fb3dc', { rim: false });
+    const armR = ARMS[ra];
+    g += pens([armR], coatD, 3.2) + `<circle cx="${armR[2][0]}" cy="${armR[2][1]}" r="2" fill="${skin}"/>`;
+    const at = p => [x + p[0] * s * dir, y + p[1] * s];
+    return { svg: `<g transform="translate(${f(x)} ${f(y)}) scale(${f(s * dir)} ${f(s)})">${g}</g>`, hand: at(armR[2]), handL: at(armL[2]), head: at([0, -57]) };
+  };
+  const pascal = o => person({ coat: C.coat, coatD: C.coatD, hair: '#5b3a22', bag: true, ...o });
+  const GANG = [
+    { coat: '#b8733a', coatD: '#7d4a20', hat: 'cap', hatC: '#4a3b2c', hair: '#3b2a1c' },
+    { coat: '#6e7f48', coatD: '#46532b', hat: 'beret', hatC: '#2c2c34', hair: '#8a5a2e' },
+    { coat: '#8d4d60', coatD: '#5e2e3e', hat: 'cap', hatC: '#2f3f5a', hair: '#2a1d14' },
+    { coat: '#4d6078', coatD: '#2f3d50', hair: '#b7843f' },
+  ];
+  const boy = (i, o) => person({ ...GANG[i % GANG.length], ...o });
+
+  /* ---------------- bigger set pieces ---------------- */
+  const bus = (x, gy) => {
+    let s = paper(rect(x, gy - 60, 212, 44, .8), '#5f8a5b', { hatch: '#3f6440', hop: .4 });
+    s += paper(rect(x + 3, gy - 88, 206, 30, .8), '#ecdcb3', { hatch: '#c3ae80', hop: .35 });
+    for (let i = 0; i < 6; i++) s += paper(rect(x + 38 + i * 27, gy - 84, 20, 20, .5), '#9dbfd3', { rim: false, hatch: '#6a93ad' });
+    s += paper(rect(x + 186, gy - 100, 22, 14, .4), '#f4ecd6', { rim: false }) + txt(x + 197, gy - 89, '96', 12);
+    s += pens([[[x + 4, gy - 56], [x + 4, gy - 84]], [[x + 30, gy - 56], [x + 30, gy - 84]], [[x + 4, gy - 60], [x + 30, gy - 60]]], C.ink, 1.3);
+    s += paper(ell(x + 208, gy - 32, 4, 4, 8, .2), C.yellow, { rim: false });
+    for (const wx of [x + 48, x + 172]) s += paper(ell(wx, gy - 14, 13, 13, 14, .5), '#262322') + paper(ell(wx, gy - 14, 4.5, 4.5, 8, .2), '#9a948a', { rim: false });
+    return s;
+  };
+  const facadeWindow = (lit) => {
+    let s = paper(rect(20, -10, 360, 290, 1), '#e2cda2', { hatch: '#bfa375', hop: .3, rim: false });
+    s += pens([[[30, 30], [370, 30]], [[30, 212], [370, 212]]], '#b69d72', 1.2, { single: true });
+    s += paper(rect(128, 62, 144, 122, .6), lit ? '#f1cf72' : '#4a3b3a', { rim: false, hatch: lit ? C.yellowD : '#2c2322' });
+    return s;
+  };
+  const windowFront = (lit) => {
+    let s = paper(rect(20, 190, 360, 70, .6), '#e2cda2', { hatch: '#bfa375', hop: .3 });
+    s += paper(rect(112, 178, 176, 13, .5), '#c9ad7f', { hatch: '#8f7852' });
+    s += paper(rect(92, 60, 34, 122, .5), '#6f94a5', { hatch: '#4b6f80' }) + paper(rect(274, 60, 34, 122, .5), '#6f94a5', { hatch: '#4b6f80' });
+    const sl = [];
+    for (let i = 0; i < 10; i++) sl.push([[96, 70 + i * 11], [122, 70 + i * 11]], [[278, 70 + i * 11], [304, 70 + i * 11]]);
+    s += pens(sl, '#3e5f6f', 1, { single: true });
+    s += pens([[[128, 62], [272, 62]], [[272, 62], [272, 184]], [[128, 184], [128, 62]], [[200, 62], [200, 178]]], '#5a4a36', 2);
+    s += paper(rect(150, 166, 100, 14, .5), '#8a5a33', { rim: false });
+    for (let i = 0; i < 6; i++) s += paper(ell(158 + i * 17, 162, 5, 5, 8, .4), i % 2 ? '#e58fb0' : C.yellow, { rim: false }) + pen([[158 + i * 17, 166], [158 + i * 17, 170]], C.greenD, 1.2, { single: true });
+    return s;
+  };
+  const bakery = x => {
+    let s = paper(rect(x, 30, 210, 190, 1), '#e7d3a8', { hatch: '#c2a674', hop: .28 });
+    s += paper(rect(x + 14, 72, 186, 140, .7), '#8a3b2b', { hatch: '#5e2419' });
+    s += paper(rect(x + 20, 40, 170, 24, .6), '#2e3a5c', { hatch: '#1c2540' }) + txt(x + 105, 58, 'BOULANGERIE', 15, '#f6e9c8');
+    for (let i = 0; i < 9; i++) s += paper(poly([[x + 12 + i * 21, 70], [x + 33 + i * 21, 70], [x + 30 + i * 21, 90], [x + 15 + i * 21, 90]], .4), i % 2 ? '#f5ecd8' : '#c9352a', { rim: false });
+    s += paper(rect(x + 24, 104, 96, 70, .6), '#f6e2ae', { rim: false, hatch: '#d6b977' });
+    for (let i = 0; i < 4; i++) s += paper(ell(x + 42 + i * 21, 150 - (i % 2) * 14, 11, 5, 10, .6), C.ochre, { rim: false, hatch: C.ochreD });
+    s += paper(ell(x + 72, 128, 30, 4, 12, .4), '#e2b25e', { rim: false, hatch: C.ochreD });
+    s += paper(rect(x + 138, 104, 44, 108, .5), '#3e2a1e', { rim: false });
+    return s;
+  };
+
+  /* ---------------- the twenty frames ---------------- */
+  const G = 210;
+  const FRAMES = [
+    {
+      title: 'A balloon on a lamppost', shot: 'Wide',
+      cap: 'On his way to school, Pascal spots a red balloon caught on a lamppost and climbs up to set it free.',
+      draw() {
+        let s = sky() + sun(52, 42) + cloud(320, 38, 1.1) + city(G, { hMin: 70, hMax: 130 }) + ground(G);
+        s += lamp(252, G, 124);
+        s += balloon(292, 52, 17, C.red, C.redD, [272, G - 110], { slack: -6 });
+        const p = pascal({ x: 240, y: G - 30, la: 'up', ra: 'up', mood: 'o' });
+        return s + p.svg;
+      },
+    },
+    {
+      title: 'No balloons on the bus', shot: 'Medium',
+      cap: 'The bus conductor shakes his head: no balloons allowed. The bus pulls away without him.',
+      draw() {
+        let s = sky() + cloud(90, 36, .9) + city(G, { hMin: 90, hMax: 150 }) + ground(G);
+        s += pen([[62, G], [62, G - 96]], '#3a3a3a', 2.6) + paper(rect(48, G - 118, 28, 22, .4), '#c9352a') + txt(62, G - 103, 'ARRÊT', 8, '#fbf3e0');
+        s += bus(168, G);
+        const c = person({ x: 186, y: G - 20, s: 1.35, dir: -1, coat: '#3d4a62', coatD: '#26304a', hat: 'cap', hatC: '#26304a', ra: 'forward', mood: 'angry', stache: true, long: true });
+        const p = pascal({ x: 116, y: G, ra: 'up', mood: 'sad' });
+        s += balloon(p.hand[0] + 8, p.hand[1] - 50, 16, C.red, C.redD, p.hand);
+        return s + c.svg + p.svg;
+      },
+    },
+    {
+      title: 'Running late', shot: 'Tracking',
+      cap: 'So Pascal runs the whole way to school, the balloon bobbing along behind him.',
+      draw() {
+        let s = sky() + cloud(300, 30, .8) + city(G, { hMin: 90, hMax: 150 }) + ground(G);
+        s += paper(ell(118, 64, 15, 15, 16), '#f6efdc') + pens([[[118, 64], [118, 54]], [[118, 64], [126, 68]]], C.ink, 1.5) + `<circle cx="118" cy="64" r="1.5" fill="${C.ink}"/>`;
+        const p = pascal({ x: 282, y: G, run: true, ra: 'back', mood: 'o' });
+        s += balloon(196, 102, 16, C.red, C.redD, p.hand, { slack: 8 });
+        s += speed(238, G - 50, 4, 22) + speed(172, 90, 3, 16);
+        return s + p.svg;
+      },
+    },
+    {
+      title: 'Sharing umbrellas', shot: 'Medium',
+      cap: "Walking home in the rain, Pascal ducks under strangers' umbrellas so the balloon stays dry.",
+      draw() {
+        let s = sky('#aab5bd', '#7f8d98') + cloud(70, 30, 1.2, '#d9dee0') + cloud(290, 22, 1.4, '#cfd5d8');
+        s += city(G, { cols: ['#c9bda5', '#bcae94', '#c4b9a8'], hMin: 90, hMax: 140 }) + ground(G, '#b4aa95', '#857a64', false);
+        for (const [px, pw] of [[60, 34], [170, 26], [330, 40]]) s += paper(ell(px, G + 18, pw, 5, 12, .6), '#8fb3c9', { rim: false, op: .9 });
+        const a = person({ x: 196, y: G, s: 1.5, walk: true, coat: '#3b3f4a', coatD: '#23262e', hat: 'bowler', ra: 'up', long: true, mood: 'smile' });
+        const b = person({ x: 70, y: G, s: 1.4, dir: -1, walk: true, coat: '#6e5a7c', coatD: '#473a52', ra: 'up', long: true, dress: true, bun: true, hair: '#6b4428' });
+        const p = pascal({ x: 262, y: G, walk: true, ra: 'up', mood: 'smile' });
+        const um = (cx, cy, w, col, colD, hand) => {
+          const pts = [];
+          for (let i = 0; i <= 12; i++) { const t = Math.PI + i / 12 * Math.PI; pts.push([cx + Math.cos(t) * w, cy + Math.sin(t) * w * .42]); }
+          for (let i = 5; i >= 0; i--) pts.push([cx - w + i / 5 * 2 * w, cy + (i % 2 ? 4 : 0)]);
+          return pen([hand, [cx, cy - 2]], C.ink, 1.4) + paper(poly(pts, .6), col, { hatch: colD }) + pens([[[cx, cy - w * .42], [cx - w * .5, cy]], [[cx, cy - w * .42], [cx + w * .5, cy]]], colD, 1, { single: true });
+        };
+        s += a.svg + b.svg;
+        s += balloon(268, G - 104, 13, C.red, C.redD, p.hand, { slack: 2 });
+        s += um(a.hand[0] + 8, G - 138, 72, '#2c2e35', '#15161a', a.hand);
+        s += um(b.hand[0], G - 124, 42, '#4f7b5a', '#335840', b.hand);
+        return s + p.svg + rain(80);
+      },
+    },
+    {
+      title: 'Out the window', shot: 'Medium',
+      cap: 'At home, his grandmother wants nothing to do with it and lets the balloon out of the window.',
+      draw() {
+        let s = sky('#eab58b', '#cf8e6b') + facadeWindow(false);
+        const g = person({ x: 172, y: 204, s: 1.55, dress: true, coat: '#6d4c6f', coatD: '#4a3049', hair: '#bdb6aa', bun: true, ra: 'up', mood: 'angry' });
+        const p = pascal({ x: 236, y: 198, s: 1.25, dir: -1, mood: 'sad', la: 'up' });
+        s += g.svg + p.svg + windowFront(false);
+        s += balloon(338, 52, 16, C.red, C.redD, [334, 104], { slack: 6 });
+        s += pens([[[322, 88], [318, 104]], [[354, 88], [358, 104]]], C.ink, 1, { single: true, op: .7 });
+        return s;
+      },
+    },
+    {
+      title: 'Waiting at the window', shot: 'Medium',
+      cap: "But the balloon doesn't fly away. It waits outside all night, and Pascal lets it back in.",
+      draw() {
+        let s = sky('#2f3b5a', '#1c2540');
+        s += paper(ell(356, 30, 14, 14, 16), '#f6eed2', { hatch: '#d6c89a', hop: .3 });
+        const st = [];
+        for (let i = 0; i < 14; i++) { const x = rnd() * 400, y = rnd() * 60; st.push([[x - 2.5, y], [x + 2.5, y]], [[x, y - 2.5], [x, y + 2.5]]); }
+        s += pens(st, '#f3d77a', 1, { single: true });
+        s += facadeWindow(true);
+        const p = pascal({ x: 214, y: 206, s: 1.4, ra: 'forward', mood: 'smile' });
+        s += p.svg + windowFront(true);
+        s += balloon(318, 118, 17, C.red, C.redD, [p.hand[0] + 16, p.hand[1] + 26], { slack: 4 });
+        return s;
+      },
+    },
+    {
+      title: 'It follows by itself', shot: 'Wide',
+      cap: 'Next morning it follows him down the street on its own, with nobody holding the string.',
+      draw() {
+        let s = sky() + sun(356, 36, 15) + city(G, { hMin: 80, hMax: 140 }) + ground(G);
+        s += pen([[20, 150], [58, 108], [92, 138], [74, 160], [60, 132], [104, 96], [150, 112], [168, 104]], C.ink, 1.2, { dash: '3 5', single: true });
+        s += balloon(196, 96, 16, C.red, C.redD, [192, 152], { slack: 6 });
+        const p = pascal({ x: 290, y: G, walk: true, mood: 'smile' });
+        const w = person({ x: 360, y: G, s: 1.4, dir: -1, dress: true, coat: '#6e8fb0', coatD: '#46668a', hair: '#8a5a2e', bun: true, la: 'forward', mood: 'o' });
+        return s + p.svg + w.svg;
+      },
+    },
+    {
+      title: 'Chasing the bus', shot: 'Tracking',
+      cap: 'When Pascal takes the bus, the balloon chases it all the way to school.',
+      draw() {
+        let s = sky() + cloud(250, 34, 1) + city(G, { hMin: 80, hMax: 140 }) + ground(G);
+        s += bus(174, G);
+        const p = pascal({ x: 190, y: G - 20, dir: -1, ra: 'wave', mood: 'smile' });
+        s += p.svg;
+        s += paper(ell(160, G - 22, 7, 6, 10), '#b9b3a8', { rim: false }) + paper(ell(146, G - 28, 5, 4.5, 10), '#c9c4ba', { rim: false });
+        s += balloon(98, 100, 16, C.red, C.redD, [104, 150], { slack: -8 });
+        s += speed(72, 88, 4, 26) + speed(150, G - 70, 3, 14);
+        return s;
+      },
+    },
+    {
+      title: 'Uproar in class', shot: 'Wide',
+      cap: 'It floats into the classroom. The children cheer and the lesson falls apart.',
+      draw() {
+        let s = sky('#ecd8a6', '#c9ae70');
+        s += paper(rect(-10, 196, 420, 70, .6), '#a8804f', { hatch: '#7a5a33', hop: .35 });
+        s += paper(rect(28, 34, 170, 86, .8), '#2f4a3a', { hatch: '#1c3024' }) + txt(112, 70, '2 + 2 = 4', 18, '#f3efe4', -2) + pen([[50, 96], [150, 92]], '#f3efe4', 1.2, { single: true });
+        s += paper(rect(300, 30, 76, 96, .6), '#bcd8ea', { hatch: '#8db4cf' }) + pens([[[338, 30], [338, 126]], [[300, 78], [376, 78]]], '#6b4428', 2);
+        const t = person({ x: 90, y: 204, s: 1.45, coat: '#5c4a3a', coatD: '#3c2f24', long: true, ra: 'wave', mood: 'o', stache: true, hair: '#8e8a84' });
+        s += t.svg;
+        s += balloon(248, 60, 15, C.red, C.redD, [252, 112], { slack: 5 });
+        const kids = [
+          boy(0, { x: 186, y: 214, s: .95, ra: 'up', mood: 'o', hat: null }),
+          pascal({ x: 262, y: 214, s: .95, ra: 'wave', la: 'up', mood: 'smile', bag: false }),
+          boy(2, { x: 338, y: 214, s: .95, dir: -1, ra: 'up', mood: 'smile', hat: null }),
+        ];
+        for (const k of kids) s += k.svg;
+        for (const dx of [186, 262, 338]) s += paper(rect(dx - 24, 182, 48, 9, .5), '#8a5a33', { hatch: C.brownD }) + pens([[[dx - 20, 190], [dx - 20, 214]], [[dx + 20, 190], [dx + 20, 214]]], C.brownD, 2);
+        return s;
+      },
+    },
+    {
+      title: 'The headmaster', shot: 'Wide',
+      cap: 'The headmaster locks Pascal in his office, but the balloon pesters him down the street until he lets the boy go.',
+      draw() {
+        let s = sky() + cloud(330, 34, .9);
+        s += building(-10, G, 150, 150, '#dcc59b', { lit: 0 });
+        s += paper(rect(22, G - 132, 86, 20, .5), '#2e3a5c') + txt(65, G - 117, 'ÉCOLE', 14, '#f6e9c8');
+        s += city(G, { hMin: 70, hMax: 110 });
+        s += ground(G);
+        s += paper(rect(44, G - 58, 42, 58, .5), '#3e2a1e', { rim: false });
+        const p = pascal({ x: 64, y: G, s: .9, mood: 'smile', la: 'wave' });
+        const h = person({ x: 262, y: G, s: 1.6, walk: true, coat: '#2d2d33', coatD: '#18181c', hat: 'bowler', long: true, stache: true, mood: 'angry', hair: '#8e8a84' });
+        s += p.svg + h.svg;
+        s += balloon(222, 76, 15, C.red, C.redD, [226, 130], { slack: 7 });
+        s += pens([[[200, 70], [194, 64]], [[200, 84], [192, 86]]], C.ink, 1, { single: true });
+        return s;
+      },
+    },
+    {
+      title: 'The girl with the blue balloon', shot: 'Medium',
+      cap: "Pascal meets a girl with a blue balloon. The two balloons can't stop bobbing toward each other.",
+      draw() {
+        let s = sky() + sun(46, 40, 14) + cloud(330, 30, 1);
+        s += tree(40, 196, 1.1) + tree(360, 196, 1.2);
+        s += ground(196, '#8fae62', '#5e7d3c', false);
+        const fl = [];
+        for (let i = 0; i < 12; i++) { const x = rnd() * 400, y = 206 + rnd() * 36; fl.push([[x, y], [x + 2, y - 4], [x + 4, y]]); }
+        s += pens(fl, C.greenD, 1, { single: true });
+        const p = pascal({ x: 150, y: 222, ra: 'up', mood: 'smile' });
+        const g = person({ x: 256, y: 222, dir: -1, dress: true, coat: '#f1ebdc', coatD: '#b9ae95', hair: '#c8913d', ra: 'up', mood: 'smile' });
+        s += balloon(176, 86, 17, C.red, C.redD, p.hand, { slack: 4 });
+        s += balloon(228, 84, 17, C.blue, C.blueD, g.hand, { slack: -4 });
+        s += pen([[202, 48], [196, 40], [202, 42], [208, 40], [202, 48]], '#e25a7d', 1.4);
+        return s + p.svg + g.svg;
+      },
+    },
+    {
+      title: 'Sunday at church', shot: 'Wide',
+      cap: 'On Sunday it follows Pascal and his mother into church, and the beadle marches them straight back out.',
+      draw() {
+        let s = sky() + cloud(60, 40, 1) + cloud(350, 60, .8);
+        s += city(G, { hMin: 60, hMax: 100 });
+        s += paper(poly([[208, 60], [222, -4], [236, 60]], .6), C.slate, { hatch: C.slateD });
+        s += paper(poly([[136, G], [136, 96], [222, 44], [308, 96], [308, G]], .8), '#d8cbb0', { hatch: '#a8987a', hop: .35 });
+        s += pens([[[222, -2], [222, -14]], [[216, -9], [228, -9]]], C.ink, 1.6);
+        s += paper(ell(222, 100, 17, 17, 18), '#4a6fb0', { hatch: '#2d4c80' }) + pens([[[205, 100], [239, 100]], [[222, 83], [222, 117]], [[210, 88], [234, 112]], [[234, 88], [210, 112]]], C.yellow, 1, { single: true });
+        s += paper(poly([[200, G], [200, G - 48], [222, G - 72], [244, G - 48], [244, G]], .5), '#4a3525', { rim: false });
+        s += ground(G);
+        const b = person({ x: 262, y: G, s: 1.5, dir: -1, coat: '#262429', coatD: '#121114', long: true, hat: 'bowler', ra: 'forward', mood: 'angry', hair: '#8e8a84' });
+        const m = person({ x: 74, y: G, s: 1.45, dir: -1, walk: true, dress: true, coat: '#8c5a7a', coatD: '#5f3a52', hat: 'beret', hatC: '#3c2a36', hair: '#6b4428', mood: 'smile' });
+        const p = pascal({ x: 126, y: G, dir: -1, walk: true, la: 'forward', mood: 'sad' });
+        s += balloon(186, 118, 14, C.red, C.redD, [190, 168], { slack: 5 });
+        s += pen([[b.handL[0], b.handL[1] - 44], [b.handL[0] + 1, G]], C.ochreD, 2.2);
+        return s + b.svg + m.svg + p.svg;
+      },
+    },
+    {
+      title: 'Outside the bakery', shot: 'Wide',
+      cap: 'Pascal leaves the balloon outside the bakery while he buys bread. A gang of boys is watching from the corner.',
+      draw() {
+        let s = sky() + cloud(180, 26, .9);
+        s += bakery(196);
+        s += ground(G);
+        s += boy(0, { x: 104, y: G, mood: 'smile' }).svg + boy(1, { x: 128, y: G - 4, mood: 'smile', s: 1.05 }).svg + boy(2, { x: 150, y: G, mood: 'smile', la: 'forward', ra: 'forward' }).svg;
+        s += building(-14, G, 124, 176, '#d8c29a', {});
+        s += balloon(310, 118, 14, C.red, C.redD, [306, 176], { slack: -5 });
+        return s;
+      },
+    },
+    {
+      title: 'Snatched!', shot: 'Wide',
+      cap: 'The boys grab it and run. Pascal drops his bread and gives chase.',
+      draw() {
+        let s = sky() + cloud(90, 34, 1);
+        s += bakery(196);
+        s += ground(G);
+        const r1 = boy(0, { x: 150, y: G, dir: -1, run: true, ra: 'up', mood: 'smile' });
+        s += balloon(r1.hand[0] - 8, r1.hand[1] - 50, 16, C.red, C.redD, r1.hand, { slack: 6 });
+        s += r1.svg + boy(1, { x: 92, y: G, dir: -1, run: true, mood: 'smile', ra: 'back' }).svg + boy(2, { x: 212, y: G, dir: -1, run: true, mood: 'smile', ra: 'forward' }).svg;
+        s += speed(186, G - 50, 3, 18, 1) + speed(250, G - 46, 3, 14, 1);
+        const p = pascal({ x: 356, y: G, dir: -1, ra: 'forward', mood: 'o' });
+        s += paper(poly([[300, G + 12], [338, G + 2], [340, G + 7], [302, G + 17]], .5), C.ochre, { hatch: C.ochreD });
+        return s + p.svg;
+      },
+    },
+    {
+      title: 'The rescue', shot: 'Medium',
+      cap: 'He finds it tied up in a courtyard where the boys are taking aim, and he pulls it free.',
+      draw() {
+        let s = sky();
+        s += paper(rect(-10, 50, 420, 170, .8), '#cbbfa7', { hatch: '#9f917a', hop: .3 });
+        const br = [];
+        for (let r = 0; r < 6; r++) { const y = 70 + r * 24; br.push([[-10, y], [410, y]]); for (let c = 0; c < 9; c++) { const x = (c * 50 + (r % 2) * 25) + j(3); br.push([[x, y], [x, y + 24]]); } }
+        s += pens(br, '#a99a80', .9, { single: true, op: .7 });
+        s += ground(G, '#b3a58a', '#85775e', false);
+        s += pen([[304, G], [303, 128]], '#6b4428', 4);
+        s += balloon(302, 70, 16, C.red, C.redD, [304, 134], { slack: 3 });
+        const b1 = boy(0, { x: 84, y: G, ra: 'forward', mood: 'angry' });
+        const b2 = boy(3, { x: 134, y: G, ra: 'forward', mood: 'angry' });
+        const sling = h => pens([[[h[0], h[1] + 4], [h[0], h[1]]], [[h[0], h[1]], [h[0] - 3, h[1] - 7]], [[h[0], h[1]], [h[0] + 3, h[1] - 7]]], '#6b4428', 1.6);
+        s += b1.svg + b2.svg + sling(b1.hand) + sling(b2.hand);
+        s += stone(214, 112, 1);
+        const p = pascal({ x: 322, y: G, dir: -1, ra: 'up', mood: 'smile' });
+        return s + p.svg;
+      },
+    },
+    {
+      title: 'Down the steps', shot: 'Wide',
+      cap: 'They run down the steep steps of Ménilmontant with the whole gang close behind.',
+      draw() {
+        let s = sky() + cloud(300, 26, 1);
+        s += city(170, { hMin: 90, hMax: 150 });
+        const stepY = x => 118 + Math.min(10, Math.max(0, Math.floor(x / 36))) * 9;
+        const pts = [[-10, 118]];
+        for (let i = 0; i <= 11; i++) { pts.push([i * 36, 118 + i * 9]); pts.push([(i + 1) * 36, 118 + i * 9]); }
+        pts.push([412, 262], [-10, 262]);
+        s += paper(poly(pts, .6), '#cfc3aa', { hatch: '#9f917a', hop: .35 });
+        const ed = [];
+        for (let i = 1; i <= 11; i++) ed.push([[i * 36, 118 + (i - 1) * 9], [i * 36, 118 + i * 9]]);
+        s += pens(ed, '#8a7c62', 1.2, { single: true });
+        s += pens([[[0, 96], [400, 186]], [[20, 101], [20, 124]], [[120, 124], [120, 145]], [[220, 146], [220, 168]], [[320, 169], [320, 190]]], '#2e4136', 2);
+        s += lamp(28, 118, 90);
+        const b1 = boy(2, { x: 82, y: stepY(82), run: true, ra: 'forward', mood: 'angry' });
+        const b2 = boy(0, { x: 132, y: stepY(132), run: true, ra: 'wave', mood: 'angry' });
+        const p = pascal({ x: 302, y: stepY(302), run: true, ra: 'up', mood: 'o' });
+        s += balloon(p.hand[0] - 14, p.hand[1] - 48, 16, C.red, C.redD, p.hand, { slack: 5 });
+        return s + b1.svg + b2.svg + p.svg + speed(262, stepY(302) - 50, 3, 18);
+      },
+    },
+    {
+      title: 'Cornered', shot: 'Wide',
+      cap: 'The boys corner them on a patch of waste ground and start throwing stones.',
+      draw() {
+        let s = sky('#b9baae', '#8f9184') + cloud(80, 30, 1.2, '#d6d7cc') + cloud(300, 40, 1, '#cfd0c4');
+        s += city(186, { cols: ['#bfb6a2', '#b3a992', '#c7bfad'], hMin: 40, hMax: 70, door: false });
+        s += ground(204, '#b3a37e', '#7d6f4c', false);
+        s += paper(poly([[70, 214], [130, 178], [180, 160], [236, 158], [290, 176], [350, 214]], 1.5), '#a99a72', { hatch: '#7d6f4c' });
+        const wd = [];
+        for (let i = 0; i < 16; i++) { const x = rnd() * 400, y = 214 + rnd() * 30; wd.push([[x, y], [x - 2, y - 7]], [[x, y], [x + 3, y - 6]]); }
+        s += pens(wd, '#5e6b3a', 1, { single: true });
+        s += pens([[[6, 214], [6, 186]], [[20, 214], [22, 190]], [[34, 214], [32, 184]], [[0, 196], [40, 194]]], '#6b4428', 2);
+        const p = pascal({ x: 210, y: 160, ra: 'up', mood: 'o' });
+        s += balloon(230, 64, 17, C.red, C.redD, p.hand, { slack: 3 });
+        s += p.svg;
+        s += boy(0, { x: 76, y: 232, ra: 'wave', mood: 'angry' }).svg + boy(1, { x: 124, y: 224, ra: 'wave', mood: 'angry' }).svg;
+        s += boy(2, { x: 322, y: 230, dir: -1, ra: 'wave', mood: 'angry' }).svg + boy(3, { x: 370, y: 236, dir: -1, ra: 'forward', mood: 'angry' }).svg;
+        s += stone(160, 104, 1) + stone(196, 60, 1) + stone(282, 92, -1) + stone(262, 48, -1);
+        return s;
+      },
+    },
+    {
+      title: 'The balloon falls', shot: 'Close-up',
+      cap: 'A stone hits. The balloon slowly shrinks and sinks, and one of the boys stamps on it.',
+      draw() {
+        let s = sky('#b9baae', '#8f9184');
+        s += ground(160, '#b3a37e', '#7d6f4c', false);
+        const pts = [[164, 176], [172, 160], [186, 150], [204, 146], [224, 152], [238, 164], [246, 178], [236, 186], [214, 184], [196, 190], [176, 188]];
+        s += paper(poly(pts, 2), C.red, { hatch: C.redD });
+        s += pens([[[182, 160], [196, 172], [210, 160]], [[214, 172], [230, 170]], [[186, 180], [204, 178]]], C.redD, 1.1, { single: true });
+        s += pen([[246, 180], [270, 190], [300, 184], [330, 196]], C.ink, .9, { single: true });
+        s += txt(262, 138, 'fsssss...', 15, C.ink, -8);
+        s += pen([[372, -10], [334, 104]], '#4b3c2e', 11) + paper(poly([[312, 104], [352, 100], [356, 116], [306, 120]], .8), '#262322');
+        const p = pascal({ x: 86, y: 262, s: 2, ra: 'forward', mood: 'sad', tear: true });
+        return s + p.svg;
+      },
+    },
+    {
+      title: 'Every balloon breaks free', shot: 'Wide',
+      cap: "All over Paris, balloons slip free from vendors, windows and children's hands.",
+      draw() {
+        let s = sky() + sun(360, 34, 14);
+        s += city(G, { hMin: 100, hMax: 170, lit: .1 });
+        s += ground(G);
+        const v = person({ x: 118, y: G, s: 1.5, coat: '#6f5a3f', coatD: '#46371f', hat: 'beret', hatC: '#2c2c34', long: true, la: 'up', ra: 'up', mood: 'o', stache: true });
+        const rising = [[80, 60, 0], [104, 36, 1], [132, 58, 2], [158, 30, 3], [62, 26, 4], [184, 64, 5], [120, 12, 6]];
+        for (const [bx, by, c] of rising) s += balloon(bx, by, 12, BALLOONS[c][0], BALLOONS[c][1], [bx + j(4), by + 36], { slack: 4 });
+        s += v.svg;
+        s += balloon(318, 90, 12, BALLOONS[7][0], BALLOONS[7][1], [320, 126], { slack: -3 });
+        s += balloon(258, 44, 13, C.blue, C.blueD, [262, 82], { slack: 4 });
+        const k = person({ x: 270, y: G, s: .95, dress: true, coat: '#e58fb0', coatD: '#b25d80', hair: '#3b2a1c', ra: 'up', mood: 'o' });
+        s += k.svg;
+        const up = [];
+        for (const [ax, ay] of [[40, 110], [226, 110], [300, 150], [376, 120]]) up.push([[ax, ay], [ax, ay - 18]], [[ax - 4, ay - 13], [ax, ay - 18], [ax + 4, ay - 13]]);
+        s += pens(up, C.ink, 1, { single: true, op: .7 });
+        return s;
+      },
+    },
+    {
+      title: 'Up over Paris', shot: 'Wide',
+      cap: 'They gather around Pascal. He holds on tight, and they carry him up over the rooftops of Paris.',
+      draw() {
+        let s = sky('#f1cf9c', '#e0a079') + cloud(62, 150, .9, '#fbeedd') + cloud(356, 120, 1.1, '#fbeedd');
+        s += paper(poly([[344, 262], [352, 176], [356, 150], [358, 118], [360, 150], [364, 176], [372, 262]], .3), '#7a7485', { hatch: '#524d5c', hop: .4 });
+        s += city(262, { hMin: 40, hMax: 80, lit: .25 });
+        const p = pascal({ x: 204, y: 170, la: 'up', ra: 'up', mood: 'smile' });
+        const hands = [p.handL, p.hand];
+        const spots = [[160, 38], [186, 22], [214, 16], [242, 26], [264, 44], [146, 64], [174, 52], [202, 44], [230, 52], [256, 70], [166, 82], [194, 72], [222, 78], [240, 94], [182, 100], [132, 90], [276, 88], [212, 104]];
+        let bs = '';
+        spots.forEach(([bx, by], i) => {
+          const c = BALLOONS[i % BALLOONS.length];
+          const h = hands[bx < 204 ? 0 : 1];
+          bs += balloon(bx + j(2), by + j(2), 11 + rnd() * 3, c[0], c[1], h, { slack: j(3) });
+        });
+        const birds = [];
+        for (const [bx, by] of [[60, 60], [80, 48], [330, 40], [350, 54]]) birds.push([[bx - 6, by - 3], [bx, by], [bx + 6, by - 3]]);
+        return s + bs + p.svg + pens(birds, C.ink, 1.1, { single: true });
+      },
+    },
+  ];
+
+  /* ---------------- render ---------------- */
+  const board = document.getElementById('board');
+  const tilts = [-1.2, .8, -.4, 1.1, -.8, .5, 1.3, -1];
+  let html = '';
+  FRAMES.forEach((fr, i) => {
+    seed(i + 1);
+    const art = fr.draw();
+    html += `<li class="frame" style="--tilt:${tilts[i % tilts.length]}deg;--tape-tilt:${(i % 3 - 1) * 3}deg">
+      <div class="frame-head"><span class="num">${i + 1}</span><h2>${fr.title}</h2><span class="shot">${fr.shot}</span></div>
+      <svg viewBox="0 0 400 250" role="img" aria-label="Frame ${i + 1}: ${fr.cap.replace(/"/g, '&quot;')}"><g clip-path="url(#frameClip)">${art}<rect width="400" height="250" filter="url(#grain)" opacity=".4"/></g></svg>
+      <p class="cap">${fr.cap}</p>
+    </li>`;
+  });
+  board.innerHTML = html;
+
+  /* masthead: a paper balloon and cut-out letters */
+  seed(99);
+  const mb = document.getElementById('mast-balloon');
+  mb.innerHTML = balloon(45, 42, 30, C.red, C.redD, [40, 126], { slack: 10 });
+  const title = document.getElementById('title');
+  const chipCols = ['#c9352a', '#3c6db4', '#dca44a', '#6e7f48', '#8d4d60', '#2f9a95'];
+  let n = 0;
+  title.innerHTML = title.textContent.split(' ').map(w => `<span class="word" aria-hidden="true">${[...w].map(ch => {
+    const col = chipCols[n++ % chipCols.length], rot = j(5).toFixed(1);
+    const cut = `polygon(${f(rnd() * 8)}% ${f(rnd() * 8)}%, ${f(92 + rnd() * 8)}% ${f(rnd() * 8)}%, ${f(92 + rnd() * 8)}% ${f(92 + rnd() * 8)}%, ${f(rnd() * 8)}% ${f(92 + rnd() * 8)}%)`;
+    return `<span class="chip" style="background:${col};transform:rotate(${rot}deg);clip-path:${cut}">${ch}</span>`;
+  }).join('')}</span>`).join('');
+
+  document.getElementById('shared-defs').insertAdjacentHTML('beforeend', defs);
+})();
+</script>
+</body>
+</html>
