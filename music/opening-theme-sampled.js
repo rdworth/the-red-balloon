@@ -1,20 +1,29 @@
-// Opening theme for The Red Balloon, played on recorded instruments.
+// Opening theme for The Red Balloon: a small musette waltz for the
+// drifting-balloon opening shot, played on recorded instruments.
 //
-// Same notes, tempo and cues as opening-theme.js (the synthesized version),
-// but the accordion, upright bass and music-box sparkles are real samples
-// from the FluidR3 General MIDI SoundFont (see samples/README.md). The pigeon
-// wing flaps and Pascal's footsteps stay synthesized, as they are sound
-// effects rather than instruments.
+// The accordion, upright bass and music-box sparkles are real samples from
+// the FluidR3 General MIDI SoundFont (see samples/README.md). The pigeon wing
+// flaps and Pascal's footsteps are synthesized, as they are sound effects
+// rather than instruments.
 //
 // Usage:
 //   await OpeningThemeSampled.load();                  // fetch + decode samples once
 //   const theme = OpeningThemeSampled.play();           // 20 s, starts now
 //   const theme = OpeningThemeSampled.play({ duration: 24 });
 //   theme.stop();
-//   OpeningThemeSampled.cueTime("snag", 24);           // same cues as OpeningTheme
+//   OpeningThemeSampled.cueTime("snag", 24);           // seconds into the scene
 //
-// play() needs load() to have finished, so that both versions can be started
-// at exactly the same `when` on a shared AudioContext.
+// play() needs load() to have finished; render() loads the samples itself.
+//
+// The piece is 12 bars of 3/4. At the default 20 s each bar is 5/3 s, lined
+// up with the animation's shot plan:
+//   0.0 s   drift    balloon drifts in through clouds (bars 1-2)
+//   2.8 s   roofs    over roofs and chimneys (bars 2-4)
+//   6.7 s   dip      dips past the laundry line (bars 5-6)
+//  10.0 s   pigeon   chirps and wing flaps as the pigeon flies off (bar 7)
+//  11.7 s   sink     falling line as the balloon sinks (bar 8)
+//  13.9 s   snag     a plink as it catches on the lamppost, then bobs (bars 9-10)
+//  16.7 s   shoes    four footsteps on the beat, then home to C (bars 11-12)
 (function (global) {
   "use strict";
 
@@ -23,7 +32,7 @@
   const DEFAULT_DURATION = 20;
   const TOTAL_BEATS = BARS * BEATS_PER_BAR;
 
-  // The score below is copied from opening-theme.js; keep the two in step.
+  // Named moments the animation can sync to, in beats from the start.
   const CUES = {
     drift: 0,
     roofs: 1 * 3 + 2,
@@ -250,8 +259,7 @@
     noise.start(t);
   }
 
-  // Schedules the whole piece on `ctx`, routed into `destination`. The
-  // arrangement mirrors schedule() in opening-theme.js line for line.
+  // Schedules the whole piece on `ctx`, routed into `destination`.
   function schedule(ctx, destination, start, duration) {
     const beat = duration / TOTAL_BEATS;
     const at = (bar, b) => start + ((bar - 1) * BEATS_PER_BAR + b) * beat;
@@ -329,7 +337,10 @@
       return FOOTSTEPS.map(([bar, b]) => (((bar - 1) * BEATS_PER_BAR + b) / TOTAL_BEATS) * duration);
     },
 
-    // Same options as OpeningTheme.play(). Call load() first.
+    // Starts the theme. Pass an existing AudioContext to share one with the
+    // animation, `when` (in that context's time) to start later, and
+    // `duration` to stretch or squeeze the tempo to fit the scene. Call
+    // load() first.
     play({ ctx, when, duration = DEFAULT_DURATION, destination } = {}) {
       if (!ready) throw new Error("OpeningThemeSampled.load() has not finished yet");
       const audio = ctx || new (global.AudioContext || global.webkitAudioContext)();
