@@ -1,0 +1,778 @@
+<title>Balloon in Pixels</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;600;700&family=Nunito:wght@400;600;700&display=swap">
+<style>
+  /* Alternate take of scene 1: chunky pixel art. The picture is drawn at
+     256 x 144 and blown up five times. Nothing here is shared with the other
+     openings except the music. */
+  :root {
+    --ground: #eef1f4;
+    --sheet: #ffffff;
+    --ink: #22252b;
+    --ink-soft: #5d6470;
+    --red: #d8261e;
+    --blue: #2f6fbf;
+    --rule: rgba(34, 37, 43, .14);
+    --hot: rgba(216, 38, 30, .08);
+    --btn: #ffffff;
+    --shadow: #22252b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #16181c;
+      --sheet: #20232a;
+      --ink: #eef0f3;
+      --ink-soft: #a3aab5;
+      --red: #ff5a4c;
+      --blue: #6fa8ee;
+      --rule: rgba(238, 240, 243, .15);
+      --hot: rgba(255, 90, 76, .13);
+      --btn: #2a2e36;
+      --shadow: #000000;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #16181c;
+    --sheet: #20232a;
+    --ink: #eef0f3;
+    --ink-soft: #a3aab5;
+    --red: #ff5a4c;
+    --blue: #6fa8ee;
+    --rule: rgba(238, 240, 243, .15);
+    --hot: rgba(255, 90, 76, .13);
+    --btn: #2a2e36;
+    --shadow: #000000;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: "Nunito", system-ui, sans-serif;
+    font-size: 17px;
+    line-height: 1.5;
+    padding-inline: 16px;
+    padding-block: 28px 56px;
+  }
+  .wrap { max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+  header { display: flex; flex-direction: column; gap: 6px; }
+  .eyebrow { margin: 0; font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); }
+  h1 { margin: 0; font-family: "Pixelify Sans", "Nunito", sans-serif; font-weight: 700; font-size: clamp(32px, 5.6vw, 54px); line-height: 1.05; text-wrap: balance; }
+  h1 .red { color: var(--red); }
+  .lede { margin: 0; max-width: 66ch; color: var(--ink-soft); }
+
+  .screen { position: relative; padding: 8px; background: #22252b; box-shadow: 6px 6px 0 var(--rule); }
+  canvas { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; max-width: 100%; background: #5b9de2; cursor: pointer; image-rendering: pixelated; }
+  .loading { position: absolute; inset: 8px; display: grid; place-items: center; font-family: "Pixelify Sans", sans-serif; font-size: 24px; color: #fff; background: rgba(34, 37, 43, .6); pointer-events: none; }
+  .loading[hidden] { display: none; }
+
+  .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; }
+  .btn {
+    font: inherit; font-family: "Pixelify Sans", sans-serif; font-weight: 600; font-size: 18px;
+    color: var(--ink); background: var(--btn);
+    border: 3px solid var(--shadow); border-radius: 0; padding: 5px 16px; cursor: pointer;
+    box-shadow: 3px 3px 0 var(--shadow);
+  }
+  .btn.primary { background: var(--red); color: #fff; }
+  .btn:active { transform: translate(3px, 3px); box-shadow: none; }
+  .btn:focus-visible, .scrub:focus-visible, .beat button:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
+  .scrub { flex: 1 1 220px; min-width: 0; accent-color: var(--red); height: 28px; }
+  .clock { font-family: "Pixelify Sans", sans-serif; font-variant-numeric: tabular-nums; min-width: 9ch; text-align: right; }
+
+  .sheet { background: var(--sheet); border: 3px solid var(--rule); padding: 20px 20px 22px; display: flex; flex-direction: column; gap: 12px; }
+  .sheet h2 { margin: 0; font-family: "Pixelify Sans", sans-serif; font-weight: 600; font-size: 26px; line-height: 1.1; }
+  .sheet .meta { margin: 0; color: var(--ink-soft); font-size: 15px; max-width: 72ch; }
+  .beats { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+  .beat button {
+    width: 100%;
+    display: grid; grid-template-columns: 6.6em 1fr; gap: 2px 14px; align-items: baseline;
+    font: inherit; color: inherit; text-align: left;
+    background: none; border: 0; border-top: 1px solid var(--rule); padding: 8px 8px; cursor: pointer;
+  }
+  .beat:first-child button { border-top: 0; }
+  .beat button:hover { background: var(--hot); }
+  .beat .t { font-variant-numeric: tabular-nums; color: var(--ink-soft); font-size: 15px; }
+  .beat .d b { font-family: "Pixelify Sans", sans-serif; font-weight: 600; margin-right: .35em; }
+  .beat .cam { display: block; color: var(--ink-soft); font-size: 14px; }
+  .beat .cam::before { content: "Camera: "; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; font-size: 11px; }
+  .beat.now button { background: var(--hot); }
+  .beat.now .t { color: var(--red); }
+  .beat .cue { color: var(--red); font-size: 14px; white-space: nowrap; }
+  @media (max-width: 520px) {
+    .beat button { grid-template-columns: 1fr; gap: 0; }
+    .screen { padding: 4px; }
+  }
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">The Red Balloon · Scene 1, alternate take · 20 seconds</p>
+    <h1>The <span class="red">balloon</span> drifts over Paris, in pixels</h1>
+    <p class="lede">The same opening as chunky pixel art. The picture is only 256 by 144 pixels, blown up five times, with flat colors, hard dark outlines and everything snapped to the pixel grid. It plays at 12 frames a second to the same little waltz, and it cuts between shots the way an old game would instead of zooming.</p>
+  </header>
+
+  <div class="screen">
+    <canvas id="stage" width="1280" height="720" role="img" aria-label="Pixel-art animation: a red pixel balloon drifts over Paris past the Eiffel Tower, sinks past zinc rooftops and a laundry line, startles a pigeon on a balcony, snags its string on a lamppost, and Pascal's shoes walk in before he looks up at it."></canvas>
+    <div class="loading" id="loading">Placing pixels…</div>
+  </div>
+
+  <div class="controls">
+    <button class="btn primary" id="play" type="button">Play</button>
+    <button class="btn" id="restart" type="button">From the top</button>
+    <button class="btn" id="sound" type="button" aria-pressed="true">Sound on</button>
+    <input class="scrub" id="scrub" type="range" min="0" max="239" step="1" value="0" aria-label="Scrub through the 240 frames">
+    <span class="clock" id="clock">0:00.0 / 0:20</span>
+  </div>
+
+  <section class="sheet" aria-labelledby="beat-title">
+    <h2 id="beat-title">Shot list</h2>
+    <p class="meta">20 seconds, 240 frames at 12 fps, over 12 bars of waltz. Same beats as the paper version. Red notes mark where a sound and a movement land together. Tap a beat to jump to it.</p>
+    <ol class="beats" id="beats"></ol>
+  </section>
+</div>
+
+<script src="music/opening-theme-sampled.js"></script>
+<script>
+(() => {
+  'use strict';
+  /* =====================================================================
+     Timing: 20 s, 12 frames a second, synced to music/opening-theme-sampled.js
+     ===================================================================== */
+  const DURATION = 20, FPS = 12, FRAMES = DURATION * FPS;
+  const BEATS = [
+    { t: 0, end: 3, name: 'Sky', text: 'The balloon drifts between blocky clouds, the Eiffel Tower far off.', cam: 'high in the sky; a cloud slides past in front.' },
+    { t: 3, end: 7, name: 'Rooftops', text: 'It sinks toward the zinc roofs; the chimney pots puff smoke.', cam: 'scrolls down over the roofs.' },
+    { t: 7, end: 10, name: 'Laundry', text: 'It drops past the laundry strung across an alley and knocks the last shirt swinging.', cam: 'scrolls down the alley.' },
+    { t: 10, end: 12.5, name: 'Pigeon', text: 'A pigeon on a balcony rail hops round on the chirp, then flaps away.', cam: 'drifts right to the balcony.', cue: 'chirp 0:10, wings 0:10.6' },
+    { t: 12.5, end: 16, name: 'Snag', text: "It sinks to the street and the string catches on the lamppost's bar. The balloon stretches and bobs.", cam: 'scrolls to the street, with a jolt on the plink.', cue: 'plink 0:13.9' },
+    { t: 16, end: 20, name: 'Shoes', text: "Pascal's shoes walk in on the beat and stop. He looks up at the balloon.", cam: 'cuts to a close-up of the pavement for the shoes, then cuts back wide to show him looking up.', cue: 'four steps from 0:16.7' },
+  ];
+  const THEME = window.OpeningThemeSampled;
+  const MUSIC_BEAT = DURATION / 36;
+  const CUES = {
+    pigeon: THEME ? THEME.cueTime('pigeon', DURATION) : 10,
+    flap: (THEME ? THEME.cueTime('pigeon', DURATION) : 10) + MUSIC_BEAT,
+    snag: THEME ? THEME.cueTime('snag', DURATION) : 25 * MUSIC_BEAT,
+    steps: THEME && THEME.stepTimes ? THEME.stepTimes(DURATION) : [30, 31, 32, 33].map(b => b * MUSIC_BEAT),
+  };
+  const CUT_IN = 16, CUT_OUT = 18.75, LOOK_UP = 19.2, KNOCK = 8.9;
+
+  const cv = document.getElementById('stage'), ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  const LW = 256, LH = 144; // the real picture; shown five times bigger
+
+  /* =====================================================================
+     Small maths
+     ===================================================================== */
+  const mulberry = a => () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  let rnd = mulberry(1);
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const ease = t => { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); };
+  const ri = Math.round;
+
+  /* Monotone cubic through keyframes, flat at both ends, so moves ease without overshoot. */
+  function pchip(ts, ys) {
+    const n = ts.length, h = [], d = [], m = new Array(n);
+    for (let i = 0; i < n - 1; i++) { h[i] = ts[i + 1] - ts[i]; d[i] = (ys[i + 1] - ys[i]) / h[i]; }
+    m[0] = 0; m[n - 1] = 0;
+    for (let i = 1; i < n - 1; i++) {
+      if (d[i - 1] * d[i] <= 0) m[i] = 0;
+      else { const w1 = 2 * h[i] + h[i - 1], w2 = h[i] + 2 * h[i - 1]; m[i] = (w1 + w2) / (w1 / d[i - 1] + w2 / d[i]); }
+    }
+    return t => {
+      if (t <= ts[0]) return ys[0];
+      if (t >= ts[n - 1]) return ys[n - 1];
+      let i = 0; while (t > ts[i + 1]) i++;
+      const hh = h[i], s = (t - ts[i]) / hh, s2 = s * s, s3 = s2 * s;
+      return (2 * s3 - 3 * s2 + 1) * ys[i] + (s3 - 2 * s2 + s) * hh * m[i] + (-2 * s3 + 3 * s2) * ys[i + 1] + (s3 - s2) * hh * m[i + 1];
+    };
+  }
+  const track = keys => { const ts = keys.map(k => k[0]); const fs = keys[0].slice(1).map((_, j) => pchip(ts, keys.map(k => k[j + 1]))); return t => fs.map(f => f(t)); };
+  const hex = c => { const n = parseInt(c.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; };
+
+  /* =====================================================================
+     Palette: daylight Paris, a fixed set of flat colors
+     ===================================================================== */
+  const C = {
+    sky: ['#3f86d6', '#5b9de2', '#7fb6ec', '#a9d2f4', '#cfe7f9'],
+    cloud: '#ffffff', cloudShade: '#d6e8f6', cloudEdge: '#9cc4e6',
+    far: '#9dbcdb', farDark: '#86a9cc', farLight: '#b6cfe6', tower: '#6f8fb6',
+    zinc: '#6d8198', zincLight: '#93a7bc', zincDark: '#4c5c72',
+    stone: '#ead9b4', stoneCourse: '#dccaa2', stoneLight: '#f7ecd4', stoneShadow: '#b09a70', stoneDark: '#8f7a55',
+    alley: '#b9a680', alleyDark: '#9a8763', alleyDeep: '#6f6048',
+    glass: '#33506f', glassLight: '#7fa2c4', frame: '#f6efe2', shutter: '#4f8a86', shutterDark: '#3a6b68', iron: '#2a2a31',
+    brick: '#b8624a', brickDark: '#8d4535', pot: '#d0845a', potDark: '#96573a',
+    smoke: '#f1f3f6', smokeShade: '#c9d1da',
+    pave: '#b3aea6', paveLight: '#cbc6be', paveDark: '#8d8880', curb: '#d6d1c8', curbDark: '#77736c',
+    cobble: '#8c8984', cobbleLight: '#a9a59f', mortar: '#4d4a46',
+    lamp: '#2f3d37', lampLight: '#557065', lampGlass: '#f4ebbb',
+    red: '#d8261e', redDark: '#9e1515', redLight: '#ff6a52', spec: '#fff4ec', redLine: '#4a0b0b',
+    string: '#3a2c28',
+    pigeon: '#8e95a2', pigeonDark: '#626878', pigeonLight: '#bcc2cc', neck: '#4f8c7c', beak: '#e7a33a', foot: '#d9776b', pigeonLine: '#2c2e37',
+    skin: '#f3c9a2', skinShade: '#d9a27c', hair: '#2a1d17', jacket: '#7c808a', jacketDark: '#5b5f69', shorts: '#595d68', shortsDark: '#454955',
+    sock: '#f5f2eb', sockShade: '#cfcac0', shoe: '#6b3a22', shoeLight: '#99593a', shoeDark: '#43220f', sole: '#24160f', lace: '#e8d9bd', bag: '#7a4a2a', boyLine: '#221916',
+    wood: '#7a4b2e', woodDark: '#573420', awning: '#d8261e', awningLight: '#fbf6ee', bread: '#d99a4e', breadDark: '#a8692c',
+    cafe: '#2f6b4a', cafeLight: '#4b8d69',
+    laundry: [['#fbfbf8', '#d9dcdf'], ['#e0503c', '#ffffff'], ['#5d8fd6', '#46729f'], ['#f2c94c', '#cf9f2a']],
+    peg: '#8a6a4a', line: '#5d5850',
+  };
+
+  /* =====================================================================
+     Pixel primitives. Everything is whole pixels.
+     ===================================================================== */
+  function mk(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); g.imageSmoothingEnabled = false; return [c, g]; }
+  const R = (g, x, y, w, h, c) => { g.fillStyle = c; g.fillRect(ri(x), ri(y), ri(w), ri(h)); };
+  const P = (g, x, y, c) => R(g, x, y, 1, 1, c);
+  function ellipse(g, cx, cy, rx, ry, c) {
+    g.fillStyle = c;
+    for (let dy = -ry; dy <= ry; dy++) { const w = ri(rx * Math.sqrt(Math.max(0, 1 - (dy / (ry + .5)) ** 2))); g.fillRect(ri(cx) - w, ri(cy) + dy, 2 * w + 1, 1); }
+  }
+  function line(g, x0, y0, x1, y1, c) {
+    x0 = ri(x0); y0 = ri(y0); x1 = ri(x1); y1 = ri(y1);
+    const dx = Math.abs(x1 - x0), dy = -Math.abs(y1 - y0), sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1;
+    let e = dx + dy; g.fillStyle = c;
+    for (;;) { g.fillRect(x0, y0, 1, 1); if (x0 === x1 && y0 === y1) break; const e2 = 2 * e; if (e2 >= dy) { e += dy; x0 += sx; } if (e2 <= dx) { e += dx; y0 += sy; } }
+  }
+  function polyline(g, pts, c) { for (let i = 1; i < pts.length; i++) line(g, pts[i - 1][0], pts[i - 1][1], pts[i][0], pts[i][1], c); }
+
+  /* A sprite is a small canvas with an anchor point. outline() rings every
+     solid pixel with a one-pixel dark line, like hand-placed pixel art. */
+  function spr(w, h, ax, ay, fn, ol) {
+    const [c, g] = mk(w, h); fn(g);
+    const s = { c, ax, ay };
+    return ol ? outline(s, ol) : s;
+  }
+  function outline(s, color) {
+    const [c, g] = mk(s.c.width + 2, s.c.height + 2);
+    g.drawImage(s.c, 1, 1);
+    const w = c.width, h = c.height, img = g.getImageData(0, 0, w, h), a = img.data, [r, gg, b] = hex(color);
+    const solid = i => a[i * 4 + 3] > 0, mark = [];
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const i = y * w + x;
+      if (solid(i)) continue;
+      if ((x > 0 && solid(i - 1)) || (x < w - 1 && solid(i + 1)) || (y > 0 && solid(i - w)) || (y < h - 1 && solid(i + w))) mark.push(i);
+    }
+    for (const i of mark) { a[i * 4] = r; a[i * 4 + 1] = gg; a[i * 4 + 2] = b; a[i * 4 + 3] = 255; }
+    g.putImageData(img, 0, 0);
+    return { c, ax: s.ax + 1, ay: s.ay + 1 };
+  }
+  function flip(s) {
+    const [c, g] = mk(s.c.width, s.c.height);
+    g.translate(c.width, 0); g.scale(-1, 1); g.drawImage(s.c, 0, 0);
+    return { c, ax: s.c.width - 1 - s.ax, ay: s.ay };
+  }
+  const BAYER = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]];
+
+  /* =====================================================================
+     Sprites
+     ===================================================================== */
+  function balloonSprite(rx, ry) {
+    const w = rx * 2 + 3, h = ry * 2 + 6, ax = rx + 1, ay = ry + 1;
+    return spr(w, h, ax, ay, g => {
+      for (let dy = -ry; dy <= ry; dy++) for (let dx = -rx; dx <= rx; dx++) {
+        const nx = dx / (rx + .5), ny = dy / (ry + .5), r2 = nx * nx + ny * ny;
+        if (r2 > 1) continue;
+        const l = -.6 * nx - .8 * ny;
+        P(g, ax + dx, ay + dy, l > .55 ? C.redLight : (l < -.2 && r2 > .45) ? C.redDark : C.red);
+      }
+      P(g, ax - ri(rx * .45), ay - ri(ry * .55), C.spec);
+      P(g, ax - ri(rx * .45), ay - ri(ry * .55) + 1, C.spec);
+      R(g, ax - 1, ay + ry + 1, 3, 1, C.redDark);
+      P(g, ax, ay + ry + 2, C.redDark);
+    }, C.redLine);
+  }
+
+  function cloudSprite(seed, w) {
+    const r = mulberry(seed), h = 26, base = 21;
+    const blobs = [];
+    for (let x = 6; x < w - 6; x += 7 + ri(r() * 4)) blobs.push([x, 4 + r() * 5 * Math.sin(Math.PI * x / w) + 4]);
+    return spr(w, h, 0, 0, g => {
+      for (const [x, rr] of blobs) ellipse(g, x, base - rr + 3, ri(rr) + 1, ri(rr), C.cloudShade);
+      for (const [x, rr] of blobs) ellipse(g, x - 1, base - rr + 1, ri(rr), ri(rr) - 1, C.cloud);
+      g.clearRect(0, base + 1, w, h);
+      R(g, 3, base, w - 6, 1, C.cloudShade);
+    }, C.cloudEdge);
+  }
+
+  function pigeonSprite(pose) {
+    // facing left, anchored between the feet
+    return spr(16, 14, 8, 12, g => {
+      const peck = pose === 'peck', fly = pose === 'up' || pose === 'down';
+      ellipse(g, 9, 8, 4, 2, C.pigeon);
+      R(g, 13, 7, 2, 2, C.pigeonDark);
+      ellipse(g, 10, 7, 3, 1, C.pigeonDark);
+      if (peck) { R(g, 4, 6, 3, 3, C.neck); ellipse(g, 4, 8, 2, 2, C.pigeonLight); P(g, 3, 7, C.iron); P(g, 1, 9, C.beak); }
+      else { R(g, 5, 5, 3, 3, C.neck); ellipse(g, 5, 4, 2, 2, C.pigeonLight); P(g, 4, 3, C.iron); P(g, 2, 4, C.beak); }
+      if (pose === 'up') { R(g, 9, 1, 2, 5, C.pigeonLight); R(g, 11, 2, 2, 4, C.pigeonLight); }
+      else if (pose === 'down') { R(g, 9, 9, 2, 4, C.pigeonLight); R(g, 11, 9, 2, 3, C.pigeonLight); }
+      if (!fly) { R(g, 8, 10, 1, 2, C.foot); R(g, 10, 10, 1, 2, C.foot); }
+    }, C.pigeonLine);
+  }
+
+  function pascalSprite(pose) {
+    // wide shot, facing right, anchored at the feet
+    return spr(16, 32, 8, 31, g => {
+      R(g, 1, 13, 2, 6, C.bag);
+      R(g, 4, 29, 3, 2, C.shoe); R(g, 9, 29, 4, 2, C.shoe);
+      R(g, 5, 25, 2, 4, C.sock); R(g, 9, 25, 2, 4, C.sock);
+      R(g, 5, 23, 2, 2, C.skin); R(g, 9, 23, 2, 2, C.skin);
+      R(g, 4, 19, 8, 4, C.shorts); R(g, 10, 19, 2, 4, C.shortsDark);
+      R(g, 4, 11, 8, 9, C.jacket); R(g, 11, 11, 1, 9, C.jacketDark);
+      P(g, 9, 14, C.iron); P(g, 9, 17, C.iron);
+      R(g, 3, 12, 1, 7, C.jacketDark); R(g, 12, 12, 1, 7, C.jacketDark);
+      P(g, 3, 19, C.skin); P(g, 12, 19, C.skin);
+      if (pose === 'up') {
+        ellipse(g, 8, 6, 3, 3, C.skin);
+        R(g, 5, 4, 3, 5, C.hair); R(g, 6, 3, 4, 2, C.hair);
+        P(g, 10, 4, C.iron); P(g, 11, 7, C.skinShade); P(g, 7, 8, C.skinShade);
+      } else {
+        ellipse(g, 8, 7, 3, 3, C.skin);
+        R(g, 5, 4, 7, 2, C.hair); R(g, 5, 6, 2, 3, C.hair);
+        P(g, 10, 7, C.iron); P(g, 7, 8, C.skinShade);
+      }
+    }, C.boyLine);
+  }
+
+  function shoeSprite(far) {
+    // close-up, side view facing right, anchored at the heel on the ground
+    const k = far ? .82 : 1, tint = c => { const [r, g, b] = hex(c); return `rgb(${ri(r * k)},${ri(g * k)},${ri(b * k)})`; };
+    return spr(31, 14, 0, 13, g => {
+      for (let i = 0; i < 30; i++) {
+        const hgt = i < 12 ? 10 : i < 18 ? 10 - (i - 11) : [4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 2, 1][i - 18];
+        R(g, i, 12 - hgt, 1, hgt, tint(i === 0 ? C.shoeDark : C.shoe));
+        P(g, i, 12 - hgt, tint(C.shoeLight));
+      }
+      R(g, 3, 2, 8, 1, tint(C.shoeDark));
+      for (let i = 12; i <= 16; i += 2) P(g, i, 12 - (10 - (i - 11)), tint(C.lace));
+      R(g, 0, 11, 30, 1, tint(C.shoeDark));
+      R(g, 0, 12, 30, 2, tint(C.sole));
+    }, far ? '#150a05' : '#1d0f09');
+  }
+
+  /* =====================================================================
+     Sets, built once
+     ===================================================================== */
+  // Sky and the far city share one layer that scrolls at .35 of the camera.
+  function buildSky() {
+    const [c, g] = mk(320, 330), img = g.createImageData(320, 330), a = img.data;
+    const stops = [0, 40, 70, 95, 110], cols = C.sky.map(hex);
+    for (let y = 0; y < 330; y++) {
+      let i = 0; while (i < stops.length - 2 && y >= stops[i + 1]) i++;
+      const t = clamp((y - stops[i]) / (stops[i + 1] - stops[i]), 0, 1);
+      // flat bands with a short dithered seam between them
+      const f = clamp((t - .55) / .45, 0, 1);
+      for (let x = 0; x < 320; x++) {
+        const col = f * 16 > BAYER[y & 3][x & 3] ? cols[i + 1] : cols[i], p = (y * 320 + x) * 4;
+        a[p] = col[0]; a[p + 1] = col[1]; a[p + 2] = col[2]; a[p + 3] = 255;
+      }
+    }
+    g.putImageData(img, 0, 0);
+    return c;
+  }
+
+  function buildFar() {
+    const [c, g] = mk(320, 330);
+    // Eiffel Tower, far off
+    const tx = 210, top = 40, base = 104;
+    for (let y = top; y <= base; y++) {
+      const u = (y - top) / (base - top), w = ri(1 + 22 * u ** 2.6);
+      if (w <= 2) { R(g, tx - w, y, 2 * w + 1, 1, C.tower); continue; }
+      R(g, tx - w, y, 2, 1, C.tower); R(g, tx + w - 1, y, 2, 1, C.tower);
+      for (let x = tx - w + 2; x < tx + w - 1; x++) if ((x + y) % 2 === 0 && !(u > .86 && Math.abs(x - tx) < w - 4)) P(g, x, y, C.tower);
+    }
+    for (const y of [66, 84]) { const u = (y - top) / (base - top), w = ri(1 + 22 * u ** 2.6) + 1; R(g, tx - w, y, 2 * w + 1, 2, C.tower); }
+    P(g, tx, top - 3, C.tower); P(g, tx, top - 2, C.tower); P(g, tx, top - 1, C.tower);
+    // rooftops of the rest of Paris
+    const r = mulberry(3);
+    for (let x = 0; x < 320;) {
+      const w = 14 + ri(r() * 22), y = 92 + ri(r() * 12);
+      R(g, x, y + 4, w, 330, C.far);
+      for (let i = 0; i < 4; i++) R(g, x + i, y + 4 - i, w - 2 * i, 1, C.farDark);
+      if (r() < .6) R(g, x + 3 + ri(r() * (w - 8)), y - 3, 3, 5, C.farDark);
+      for (let wy = y + 9; wy < 140; wy += 7) for (let wx = x + 3; wx < x + w - 3; wx += 5) P(g, wx, wy, C.farLight);
+      x += w;
+    }
+    return c;
+  }
+
+  const SMOKE = [];
+  function window1(g, wx, wy, shutters) {
+    R(g, wx - 1, wy - 2, 12, 1, C.stoneLight); R(g, wx - 1, wy - 1, 12, 1, C.stoneShadow);
+    R(g, wx, wy, 10, 22, C.frame); R(g, wx + 1, wy + 1, 8, 20, C.glass);
+    R(g, wx + 4, wy + 1, 2, 20, C.frame); R(g, wx + 1, wy + 7, 8, 1, C.frame);
+    P(g, wx + 2, wy + 3, C.glassLight); P(g, wx + 3, wy + 2, C.glassLight); P(g, wx + 7, wy + 11, C.glassLight); P(g, wx + 8, wy + 10, C.glassLight);
+    R(g, wx - 1, wy + 22, 12, 2, C.stoneLight); R(g, wx - 1, wy + 24, 12, 1, C.stoneShadow);
+    R(g, wx - 1, wy + 14, 12, 1, C.iron); R(g, wx - 1, wy + 21, 12, 1, C.iron);
+    for (let i = 0; i < 6; i++) R(g, wx - 1 + i * 2, wy + 15, 1, 6, C.iron);
+    if (shutters) for (const sx of [wx - 4, wx + 11]) { R(g, sx, wy, 3, 22, C.shutter); for (let y = wy + 1; y < wy + 22; y += 2) R(g, sx, y, 3, 1, C.shutterDark); }
+  }
+  function building(g, x0, x1, roof, o) {
+    const w = x1 - x0;
+    for (const cx of o.chimneys) {
+      R(g, cx, roof - 18, 10, 20, C.brick);
+      for (let y = roof - 16, k = 0; y < roof; y += 3, k++) { R(g, cx, y, 10, 1, C.brickDark); P(g, cx + (k % 2 ? 3 : 7), y + 1, C.brickDark); }
+      R(g, cx - 1, roof - 20, 12, 2, C.stoneLight);
+      for (const [px, ph] of [[cx + 1, 4], [cx + 6, 3]]) { R(g, px, roof - 20 - ph, 3, ph, C.pot); R(g, px + 2, roof - 20 - ph, 1, ph, C.potDark); SMOKE.push([px + 1, roof - 21 - ph, SMOKE.length * .37]); }
+    }
+    R(g, x0, roof, w, 32, C.zinc); R(g, x0, roof, w, 1, C.zincLight);
+    for (let x = x0 + 2; x < x1; x += 5) R(g, x, roof + 1, 1, 31, C.zincDark);
+    R(g, x0, roof + 29, w, 3, C.zincDark);
+    for (let dx = x0 + 10; dx < x1 - 12; dx += 30) {
+      for (let i = 0; i < 5; i++) R(g, dx - 1 + i, roof + 7 - i, 12 - 2 * i, 1, i === 4 ? C.zincLight : C.zinc);
+      R(g, dx - 1, roof + 8, 12, 18, C.stoneLight); R(g, dx + 1, roof + 11, 8, 14, C.glass);
+      R(g, dx + 4, roof + 11, 2, 14, C.stoneLight); P(g, dx + 2, roof + 13, C.glassLight); P(g, dx + 7, roof + 17, C.glassLight);
+      R(g, dx - 1, roof + 26, 12, 1, C.stoneShadow);
+    }
+    R(g, x0, roof + 32, w, 4, C.stoneLight); R(g, x0, roof + 36, w, 1, C.stoneShadow); R(g, x0, roof + 37, w, 1, C.stoneDark);
+    R(g, x0, roof + 38, w, 516 - roof - 38, C.stone);
+    const r = mulberry(x0 + 11);
+    for (let y = roof + 46; y < 516; y += 10) R(g, x0, y, w, 1, C.stoneCourse);
+    for (let i = 0; i < w * 2; i++) P(g, x0 + ri(r() * w), roof + 40 + ri(r() * (476 - roof)), r() < .5 ? C.stoneLight : C.stoneCourse);
+    o.rows.forEach((wy, row) => { for (let wx = x0 + 9, k = 0; wx < x1 - 12; wx += 26, k++) window1(g, wx, wy, (row + k) % 3 === 0); });
+    if (o.balcony) {
+      const [bx, by] = o.balcony;
+      R(g, bx - 8, by + 22, 26, 3, C.stoneLight); R(g, bx - 8, by + 25, 26, 1, C.stoneShadow);
+      P(g, bx - 6, by + 26, C.stoneShadow); P(g, bx + 15, by + 26, C.stoneShadow);
+      R(g, bx - 8, by + 12, 26, 1, C.iron);
+      for (let i = 0; i <= 12; i++) R(g, bx - 8 + i * 2, by + 13, 1, 9, C.iron);
+      R(g, bx - 8, by + 17, 26, 1, C.iron);
+    }
+    // shopfront on the ground floor
+    R(g, x0, 516, w, 4, C.stoneLight); R(g, x0, 520, w, 52, C.stoneCourse);
+    const sx = x0 + 6, sw = w - 12;
+    if (o.shop === 'bakery') {
+      R(g, sx, 522, sw, 8, C.wood); for (let x = sx + 8; x < sx + sw - 8; x += 4) P(g, x, 525, C.awningLight);
+      for (let x = sx; x < sx + sw; x += 4) R(g, x, 530, 4, 8, (x - sx) % 8 ? C.awningLight : C.awning);
+      for (let x = sx; x < sx + sw; x += 4) R(g, x + 1, 538, 2, 1, (x - sx) % 8 ? C.awningLight : C.awning);
+      R(g, sx, 540, sw - 22, 28, C.woodDark); R(g, sx + 2, 542, sw - 26, 24, C.glass);
+      for (let x = sx + 6; x < sx + sw - 30; x += 10) { ellipse(g, x, 560, 3, 1, C.bread); P(g, x - 1, 559, C.breadDark); P(g, x + 1, 560, C.breadDark); }
+      R(g, sx + 2, 562, sw - 26, 2, C.wood);
+      R(g, sx + sw - 18, 540, 14, 32, C.woodDark); R(g, sx + sw - 16, 542, 10, 30, C.wood); P(g, sx + sw - 8, 557, C.bread);
+    } else {
+      R(g, sx, 522, sw, 8, C.cafe); for (let x = sx + 8; x < sx + 60; x += 4) P(g, x, 525, C.awningLight);
+      R(g, sx, 530, sw, 1, C.cafeLight);
+      for (let k = 0; k < 3; k++) { const px = sx + 4 + k * 40; R(g, px, 536, 30, 32, C.cafe); R(g, px + 2, 538, 26, 28, C.glass); P(g, px + 5, 541, C.glassLight); P(g, px + 6, 540, C.glassLight); }
+      R(g, sx + 124, 534, 16, 38, C.cafe); R(g, sx + 126, 536, 12, 36, C.glass); P(g, sx + 136, 554, C.lampGlass);
+    }
+    R(g, x0, roof, 1, 572 - roof, C.stoneShadow); R(g, x1 - 1, roof, 1, 572 - roof, C.stoneShadow);
+  }
+
+  function buildMid() {
+    const [c, g] = mk(380, 600);
+    SMOKE.length = 0;
+    // the alley: the back of a building further off, in shade
+    R(g, 120, 226, 100, 6, C.zincDark); R(g, 120, 232, 100, 340, C.alley);
+    for (let y = 240, row = 0; y < 548; y += 8, row++) { R(g, 120, y, 100, 1, C.alleyDark); for (let x = 120 + (row % 2) * 7; x < 220; x += 14) R(g, x, y, 1, 8, C.alleyDark); }
+    for (const wy of [262, 360, 458]) for (const wx of [138, 186]) { R(g, wx - 1, wy - 1, 10, 16, C.alleyDark); R(g, wx, wy, 8, 14, C.alleyDeep); R(g, wx + 3, wy, 2, 14, C.alleyDark); }
+    R(g, 208, 232, 2, 340, '#6b7380'); for (let y = 250; y < 572; y += 30) R(g, 207, y, 4, 1, '#4d5460');
+    for (let y = 232; y < 572; y++) for (let x = 120; x < 130; x++) if ((x - 120) * 1.7 < 16 - BAYER[y & 3][x & 3]) P(g, x, y, C.alleyDark);
+    R(g, 120, 540, 100, 32, C.alleyDeep);
+    building(g, 0, 120, 212, { chimneys: [28, 82], rows: [258, 308, 358, 408, 460], shop: 'bakery' });
+    building(g, 220, 380, 206, { chimneys: [250, 330], rows: [254, 304, 353, 402, 456], shop: 'cafe', balcony: [229, 402] });
+    // pavement, kerb and cobbled road
+    R(g, 0, 572, 380, 14, C.pave); R(g, 0, 572, 380, 1, C.paveLight);
+    for (let x = 6; x < 380; x += 20) R(g, x, 573, 1, 13, C.paveDark);
+    R(g, 0, 579, 380, 1, C.paveDark);
+    R(g, 0, 586, 380, 2, C.curb); R(g, 0, 588, 380, 1, C.curbDark);
+    R(g, 0, 589, 380, 11, C.mortar);
+    for (let y = 589, row = 0; y < 600; y += 5, row++) for (let x = -(row % 2) * 5; x < 380; x += 10) { R(g, x + 1, y + 1, 8, 3, C.cobble); R(g, x + 1, y + 1, 7, 1, C.cobbleLight); }
+    // lamppost with its ladder bar
+    R(g, 170, 566, 15, 6, C.lamp); R(g, 172, 558, 11, 8, C.lamp); R(g, 173, 558, 1, 14, C.lampLight);
+    R(g, 175, 498, 4, 60, C.lamp); R(g, 176, 498, 1, 60, C.lampLight);
+    R(g, 166, 511, 23, 2, C.lamp); P(g, 166, 510, C.lamp); P(g, 188, 510, C.lamp);
+    R(g, 172, 495, 11, 3, C.lamp); R(g, 173, 486, 9, 9, C.lampGlass); R(g, 177, 486, 1, 9, C.lamp); R(g, 172, 486, 1, 9, C.lamp); R(g, 182, 486, 1, 9, C.lamp);
+    R(g, 172, 484, 11, 2, C.lamp); R(g, 174, 482, 7, 2, C.lamp); R(g, 177, 479, 1, 3, C.lamp);
+    R(g, 170, 572, 16, 1, C.paveDark);
+    return c;
+  }
+
+  // Close-up of the pavement for the shoes.
+  const GY = 124;
+  function buildClose() {
+    const [c, g] = mk(LW, LH), r = mulberry(21);
+    R(g, 0, 0, LW, 96, C.stone);
+    for (let y = 0, row = 0; y < 96; y += 16, row++) {
+      R(g, 0, y + 15, LW, 1, C.stoneShadow); R(g, 0, y, LW, 1, C.stoneLight);
+      for (let x = (row % 2) * 20 - 20; x < LW; x += 40) { R(g, x, y, 1, 16, C.stoneShadow); R(g, x + 1, y, 1, 15, C.stoneLight); }
+    }
+    for (let i = 0; i < 260; i++) P(g, ri(r() * LW), ri(r() * 95), r() < .5 ? C.stoneCourse : C.stoneLight);
+    R(g, 0, 96, LW, 8, C.stoneShadow); R(g, 0, 96, LW, 1, C.stoneLight); R(g, 0, 103, LW, 1, C.stoneDark);
+    R(g, 0, 104, LW, 40, C.pave); R(g, 0, 104, LW, 1, C.paveLight);
+    R(g, 0, 118, LW, 1, C.paveDark); R(g, 0, 136, LW, 1, C.paveDark);
+    for (let x = 30; x < LW; x += 64) { R(g, x, 105, 1, 13, C.paveDark); R(g, x + 22, 119, 1, 17, C.paveDark); R(g, x - 10, 137, 1, 7, C.paveDark); }
+    for (let i = 0; i < 120; i++) P(g, ri(r() * LW), 105 + ri(r() * 38), r() < .5 ? C.paveLight : C.paveDark);
+    // foot of the lamppost
+    R(g, 202, 0, 30, 104, C.lamp); R(g, 204, 0, 3, 104, C.lampLight);
+    for (let i = 0; i < 4; i++) R(g, 211 + i * 5, 0, 1, 100, C.lampLight);
+    R(g, 196, 98, 42, 8, C.lamp); R(g, 196, 98, 42, 1, C.lampLight);
+    R(g, 190, 106, 54, 10, C.lamp); R(g, 190, 106, 54, 1, C.lampLight);
+    R(g, 186, 116, 62, 2, C.paveDark);
+    return c;
+  }
+
+  let SPR = null;
+  function build() {
+    return {
+      sky: buildSky(), far: buildFar(), mid: buildMid(), close: buildClose(),
+      balloon: balloonSprite(6, 7), stretched: balloonSprite(5, 8),
+      clouds: [cloudSprite(4, 58), cloudSprite(9, 40), cloudSprite(12, 72), cloudSprite(17, 30), cloudSprite(23, 96)],
+      pigeon: Object.fromEntries(['stand', 'peck', 'up', 'down'].map(p => { const s = pigeonSprite(p); return [p, { left: s, right: flip(s) }]; })),
+      pascal: { level: pascalSprite('level'), up: pascalSprite('up') },
+      shoe: { near: shoeSprite(false), far: shoeSprite(true) },
+    };
+  }
+
+  /* =====================================================================
+     Motion
+     ===================================================================== */
+  const lo = mk(LW, LH), lg = lo[1];
+  const put = (s, x, y) => lg.drawImage(s.c, ri(x) - s.ax, ri(y) - s.ay);
+
+  // camera = top-left of the 256 x 144 window onto the street (380 x 600)
+  const CAM = track([
+    [0, 0, 0], [3, 15, 40], [5, 40, 110], [7, 70, 200], [KNOCK, 82, 262], [CUES.pigeon, 100, 328], [11.2, 96, 360],
+    [12.5, 80, 400], [CUES.snag, 60, 440], [14.6, 54, 456], [CUT_IN, 54, 456],
+  ]);
+  const FINAL_CAM = [46, 456];
+  const SNAG = [167, 511], STRING = 22;
+  const REST = [164, SNAG[1] - STRING - 9];
+  const BAL = track([
+    [0, 70, 50], [1.5, 82, 60], [3, 100, 80], [5, 135, 150], [7, 168, 262], [KNOCK, 192, 324], [CUES.pigeon, 205, 395],
+    [11.2, 200, 425], [12.5, 186, 455], [CUES.snag, REST[0], REST[1]],
+  ]);
+  const PIGEON = [238, 413];
+  const CLOUDS = [[0, 10, 22, 3], [1, 150, 6, 2], [2, 230, 52, 4], [3, 96, 78, 3], [4, 300, 30, 2], [1, 40, 120, 3]];
+  const LAUNDRY = [[128, 12, 14, 0, 'shirt'], [147, 14, 10, 1, 'towel'], [168, 12, 14, 2, 'shirt'], [190, 12, 15, 3, 'shirt']];
+  const lineY = x => 331 + ri(5 * (1 - ((x - 170) / 50) ** 2));
+
+  function balloonAt(t) {
+    if (t < CUES.snag) { const [x, y] = BAL(t); return [ri(x + Math.sin(t * 2.1)), ri(y + Math.sin(t * 1.3 + 1) * .8), false]; }
+    const u = t - CUES.snag, e = Math.exp(-1.3 * u);
+    return [ri(REST[0] + 1.5 * e * Math.sin(u * 3.7 + 1) + .8 * Math.sin(u * 1.1)), ri(REST[1] - 3 * e * Math.sin(u * 5.5 + .4) + Math.sin(u * 1.7)), u < .25];
+  }
+
+  function drawBalloon(t, cx, cy) {
+    const [x, y, stretch] = balloonAt(t), s = stretch ? SPR.stretched : SPR.balloon;
+    const knot = [x, y + (stretch ? 8 : 7) + 2];
+    let pts;
+    if (t < CUES.snag) {
+      const [x0] = BAL(t - .15), [x1] = BAL(t), vx = (x1 - x0) / .15;
+      const end = [knot[0] + clamp(-vx * .25, -8, 8) + Math.sin(t * 1.7) * 2, knot[1] + STRING];
+      const mid = [knot[0] + (end[0] - knot[0]) * .2 + Math.sin(t * 2.3) * 1.5, knot[1] + STRING / 2];
+      pts = [];
+      for (let i = 0; i <= 12; i++) { const s2 = i / 12, a = (1 - s2) ** 2, b = 2 * (1 - s2) * s2, c2 = s2 * s2; pts.push([a * knot[0] + b * mid[0] + c2 * end[0] - cx, a * knot[1] + b * mid[1] + c2 * end[1] - cy]); }
+    } else pts = [[knot[0] - cx, knot[1] - cy], [SNAG[0] - cx, SNAG[1] - cy]];
+    polyline(lg, pts, C.string);
+    put(s, x - cx, y - cy);
+  }
+
+  function drawSmoke(t, cx, cy) {
+    for (const [px, py, ph] of SMOKE) {
+      for (let k = 0; k < 6; k++) {
+        const a = (t + ph + k * .6) % 3.6;
+        const x = px + a * 7 + Math.sin(a * 2 + ph) - cx, y = py - 2 - a * 9 - cy, r = ri(1 + a * 1.2);
+        if (y < -10 || y > LH + 10 || x < -10 || x > LW + 10) continue;
+        ellipse(lg, x + 1, y + 1, r, r, C.smokeShade);
+        ellipse(lg, x, y, r, r, a > 2.8 ? C.smokeShade : C.smoke);
+      }
+    }
+  }
+
+  function drawLaundry(t, cx, cy) {
+    const pts = [];
+    for (let x = 120; x <= 220; x += 4) pts.push([x - cx, lineY(x) - cy]);
+    polyline(lg, pts, C.line);
+    const u = t - KNOCK, swing = u > 0 ? 4 * Math.exp(-.9 * u) * Math.sin(6 * u) : 0;
+    for (const [x0, w, h, ci, kind] of LAUNDRY) {
+      const top = lineY(x0 + w / 2) + 1, [c1, c2] = C.laundry[ci], sw = ci === 3 ? swing : Math.sin(t * 1.6 + x0) * .6;
+      for (let r = 0; r < h; r++) {
+        const dx = ri(sw * r / h), sleeve = kind === 'shirt' && r < 4, inset = kind === 'shirt' && !sleeve ? 3 : 0;
+        const x = x0 + inset + dx - cx, y = top + r - cy, ww = w - 2 * inset;
+        const col = kind === 'towel' ? (r % 4 < 2 ? c1 : c2) : (r === h - 1 ? c2 : c1);
+        R(lg, x, y, ww, 1, col);
+        P(lg, x, y, C.line); P(lg, x + ww - 1, y, C.line);
+        if (kind === 'shirt' && r === 0) R(lg, x0 + w / 2 - 1 + dx - cx, y, 2, 1, C.alleyDark);
+      }
+      R(lg, x0 + ri(sw) - cx + (kind === 'shirt' ? 3 : 0), top + h - cy, w - (kind === 'shirt' ? 6 : 0), 1, C.line);
+      P(lg, x0 + 1 - cx, top - 1 - cy, C.peg); P(lg, x0 + w - 2 - cx, top - 1 - cy, C.peg);
+    }
+  }
+
+  function drawPigeon(t, cx, cy) {
+    let [x, y] = PIGEON, pose = 'stand', dir = 'left';
+    if (t < CUES.pigeon) { if (Math.sin(t * 3.2) > .7) pose = 'peck'; }
+    else if (t < CUES.flap) { const s = (t - CUES.pigeon) / (CUES.flap - CUES.pigeon); y -= ri(Math.sin(Math.PI * clamp(s * 1.6, 0, 1)) * 6); if (s > .3) dir = 'right'; }
+    else { const u = t - CUES.flap; x += 60 * u + 40 * u * u; y -= 45 * u + 30 * u * u; dir = 'right'; pose = Math.floor(u * FPS) % 2 ? 'down' : 'up'; }
+    if (x - cx > LW + 20 || y - cy < -20) return;
+    put(SPR.pigeon[pose][dir], x - cx, y - cy);
+  }
+
+  function drawWide(t) {
+    let cx, cy;
+    if (t >= CUT_OUT) [cx, cy] = FINAL_CAM; else [cx, cy] = CAM(t);
+    const u = t - CUES.snag;
+    if (u >= 0 && u < .6) cy -= ri(2 * Math.exp(-5 * u)) * ((Math.floor(u * FPS) % 2) ? 1 : -1);
+    cx = ri(clamp(cx, 0, 124)); cy = ri(clamp(cy, 0, 456));
+    const fx = ri(cx * .35), fy = ri(cy * .35);
+    lg.drawImage(SPR.sky, -fx, -fy);
+    for (const [i, x, y, v] of CLOUDS) if (cy < 260) put(SPR.clouds[i], ((x - cx * .5 + t * v) % 400 + 400) % 400 - 80, y - ri(cy * .5));
+    lg.drawImage(SPR.far, -fx, -fy);
+    lg.drawImage(SPR.mid, -cx, -cy);
+    if (cy < 240) drawSmoke(t, cx, cy);
+    drawLaundry(t, cx, cy);
+    drawPigeon(t, cx, cy);
+    drawBalloon(t, cx, cy);
+    if (t < 5) put(SPR.clouds[4], 210 - 60 * t, 112 - ri(cy * 1.3));
+    if (t >= CUT_OUT) put(t < LOOK_UP ? SPR.pascal.level : SPR.pascal.up, 148 - cx, 580 - cy);
+  }
+
+  // Each foot's swings: [lift, land, from, to]; each landing is a footstep in the music.
+  function footAt(swings, t) {
+    let x = swings[0][2], lift = 0;
+    for (const [a, b, f, to] of swings) {
+      if (t < a) { x = f; break; }
+      if (t < b) { const s = (t - a) / (b - a); x = lerp(f, to, ease(s)); lift = Math.sin(Math.PI * s) * 9; break; }
+      x = to;
+    }
+    return [ri(x), ri(lift)];
+  }
+  function drawLeg(ax, ay, hx, hy, far) {
+    const k = far ? .82 : 1, tint = c => { const [r, g, b] = hex(c); return `rgb(${ri(r * k)},${ri(g * k)},${ri(b * k)})`; };
+    const line2 = far ? '#150a05' : C.boyLine;
+    for (let y = ay; y >= 0; y--) {
+      const x = ri(lerp(ax, hx, (ay - y) / (ay - hy)));
+      const shorts = y < 30, sock = y > ay - 14, wdt = shorts ? 14 : 10;
+      R(lg, x - wdt / 2, y, wdt, 1, tint(sock ? C.sock : shorts ? C.shorts : C.skin));
+      R(lg, x + wdt / 2 - 2, y, 2, 1, tint(sock ? C.sockShade : shorts ? C.shortsDark : C.skinShade));
+      P(lg, x - wdt / 2 - 1, y, line2); P(lg, x + wdt / 2, y, line2);
+    }
+  }
+  function drawClose(t) {
+    const [s1, s2, s3, s4] = CUES.steps;
+    const L = footAt([[CUT_IN + .15, s1, -90, 10], [s2 + .02, s3, 10, 110]], t);
+    const Rt = footAt([[s1 + .02, s2, -40, 60], [s3 + .02, s4, 60, 116]], t);
+    lg.drawImage(SPR.close, 0, 0);
+    const hx = (L[0] + Rt[0]) / 2 + 18, hy = -50;
+    for (const [fx, lift] of [L, Rt]) ellipse(lg, fx + 15, GY, Math.max(6, 15 - lift), 1, C.paveDark);
+    for (const [[fx, lift], far] of [[L, true], [Rt, false]]) {
+      drawLeg(fx + 8, GY - 10 - lift, hx, hy, far);
+      put(far ? SPR.shoe.far : SPR.shoe.near, fx, GY - lift);
+    }
+  }
+
+  function draw(n) {
+    const t = n / FPS;
+    rnd = mulberry(n + 1);
+    lg.setTransform(1, 0, 0, 1, 0, 0);
+    if (t >= CUT_IN && t < CUT_OUT) drawClose(t); else drawWide(t);
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(lo[0], 0, 0, W, H);
+  }
+
+  /* =====================================================================
+     Player: the waltz is rendered once, and while it plays the audio clock
+     drives the picture so the cues land on the frames.
+     ===================================================================== */
+  const playBtn = document.getElementById('play'), restartBtn = document.getElementById('restart');
+  const scrub = document.getElementById('scrub'), clock = document.getElementById('clock');
+  const beatList = document.getElementById('beats');
+  const fmt = s => `${Math.floor(s / 60)}:${(s % 60).toFixed(1).padStart(4, '0')}`;
+  const fmtRange = (a, b) => `${fmt(a).replace(/\.0$/, '')}–${fmt(b).replace(/\.0$/, '')}`;
+  beatList.innerHTML = BEATS.map((b, i) => `<li class="beat" data-i="${i}"><button type="button" data-t="${b.t}"><span class="t">${fmtRange(b.t, b.end)}</span><span class="d"><b>${b.name}.</b>${b.text}${b.cue ? ` <span class="cue">♪ ${b.cue}</span>` : ''}<span class="cam">${b.cam}</span></span></button></li>`).join('');
+
+  let playing = false, frame = 0, lastDrawn = -1, startAt = 0, startFrame = 0;
+  const listeners = new Set();
+  function show(n) {
+    frame = clamp(n, 0, FRAMES - 1);
+    if (SPR && frame !== lastDrawn) { draw(frame); lastDrawn = frame; }
+    scrub.value = frame;
+    const t = frame / FPS;
+    clock.textContent = `${fmt(t)} / 0:20`;
+    beatList.querySelectorAll('.beat').forEach((li, i) => li.classList.toggle('now', t >= BEATS[i].t && t < BEATS[i].end));
+    listeners.forEach(fn => { try { fn(t, frame); } catch (e) { /* listener errors stay out of the player */ } });
+  }
+
+  const soundBtn = document.getElementById('sound');
+  const sound = { on: !!THEME, ctx: null, buffer: null, rendering: null, src: null, ctxStart: 0 };
+  if (!THEME) soundBtn.hidden = true;
+  const renderMusic = () => sound.rendering ||= THEME.render(DURATION).then(b => (sound.buffer = b)).catch(e => { console.warn('music failed', e); sound.on = false; soundBtn.hidden = true; });
+  function startSound(fromSec) {
+    if (!sound.on || !sound.buffer) return false;
+    try {
+      sound.ctx ||= new (window.AudioContext || window.webkitAudioContext)();
+      if (sound.ctx.state === 'suspended') sound.ctx.resume();
+      const src = sound.ctx.createBufferSource();
+      src.buffer = sound.buffer;
+      src.connect(sound.ctx.destination);
+      sound.ctxStart = sound.ctx.currentTime + 0.06;
+      src.start(sound.ctxStart, fromSec);
+      sound.src = src;
+      return true;
+    } catch (e) { console.warn('sound failed', e); return false; }
+  }
+  function stopSound() { if (sound.src) { try { sound.src.stop(); } catch (e) { /* already stopped */ } sound.src = null; } }
+  const latency = () => sound.ctx ? (sound.ctx.outputLatency || sound.ctx.baseLatency || 0) : 0;
+
+  function tick(now) {
+    if (!playing) return;
+    const elapsed = sound.src ? Math.max(0, sound.ctx.currentTime - sound.ctxStart - latency()) : (now - startAt) / 1000;
+    const n = startFrame + Math.floor(elapsed * FPS);
+    if (n >= FRAMES - 1) {
+      show(FRAMES - 1);
+      sound.src = null; // let the last chord ring out
+      playing = false;
+      playBtn.textContent = 'Play again';
+      return;
+    }
+    show(n);
+    requestAnimationFrame(tick);
+  }
+  async function play() {
+    if (playing || !SPR) return;
+    if (frame >= FRAMES - 1) show(0);
+    playing = true;
+    playBtn.textContent = 'Pause';
+    if (sound.on && !sound.buffer) { playBtn.textContent = 'Tuning up…'; await renderMusic(); if (!playing) return; playBtn.textContent = 'Pause'; }
+    startFrame = frame; startAt = performance.now();
+    startSound(frame / FPS);
+    requestAnimationFrame(tick);
+  }
+  function pause() { playing = false; stopSound(); playBtn.textContent = 'Play'; }
+  function seek(sec, keepPlaying = playing) {
+    pause();
+    show(Math.round(sec * FPS));
+    if (keepPlaying) play();
+  }
+  soundBtn.addEventListener('click', () => {
+    sound.on = !sound.on;
+    soundBtn.setAttribute('aria-pressed', String(sound.on));
+    soundBtn.textContent = sound.on ? 'Sound on' : 'Sound off';
+    if (playing) seek(frame / FPS, true);
+  });
+  playBtn.addEventListener('click', () => playing ? pause() : play());
+  cv.addEventListener('click', () => playing ? pause() : play());
+  restartBtn.addEventListener('click', () => seek(0, true));
+  scrub.addEventListener('input', () => seek(+scrub.value / FPS, false));
+  beatList.addEventListener('click', e => { const b = e.target.closest('button[data-t]'); if (b) seek(+b.dataset.t, true); });
+  document.addEventListener('keydown', e => {
+    if (e.target.closest('input, button')) return;
+    if (e.code === 'Space') { e.preventDefault(); playing ? pause() : play(); }
+  });
+
+  window.pixelScene = { duration: DURATION, fps: FPS, beats: BEATS, cues: CUES, play, pause, seek, get time() { return frame / FPS; }, get playing() { return playing; }, get ready() { return !!SPR; }, onFrame: fn => (listeners.add(fn), () => listeners.delete(fn)) };
+
+  const m = /^#t(\d+(?:\.\d+)?)$/.exec(location.hash);
+  const reduced = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  requestAnimationFrame(() => setTimeout(() => {
+    SPR = build();
+    document.getElementById('loading').hidden = true;
+    lastDrawn = -1;
+    show(Math.round((m ? +m[1] : reduced ? 19.9 : 0) * FPS));
+  }, 30));
+  if (THEME) renderMusic();
+})();
+</script>
